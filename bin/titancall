@@ -25,7 +25,8 @@ BUCKET_RULES=(
   "exit|disengage|offline"
 )
 
-DEFAULT_CONFIG='titan=ion
+DEFAULT_CONFIG='enabled=1
+titan=ion
 output=
 volume=0.7
 # logical event -> bucket (hooks speak dev-words, not titan-words)
@@ -149,6 +150,7 @@ pick_wav() {
 
 # ---- subcommands ----
 cmd_play() {
+  [ "$(cfg enabled 1)" = "0" ] && return 0     # global mute gate (hooks call us anyway, stay quiet)
   local event="${1:-notify}" titan bucket f
   titan=$(active_titan)
   [ -d "$SOUNDS/$titan" ] || die "titan '$titan' has no voice folder (titancall titan list)"
@@ -239,6 +241,16 @@ cmd_normalize() {
 
 cmd_test() { cmd_play "${1:-notify}"; }
 
+cmd_enable()  { cfg_set enabled 1; echo "titancall: ENABLED"; }
+cmd_disable() { cfg_set enabled 0; echo "titancall: MUTED (hooks fire but stay quiet)"; }
+cmd_toggle()  { [ "$(cfg enabled 1)" = "0" ] && cmd_enable || cmd_disable; }
+cmd_status()  {
+  resolve_titan
+  echo "state:  $([ "$(cfg enabled 1)" = "0" ] && echo MUTED || echo enabled)"
+  echo "titan:  $ACTIVE_TITAN  (via $ACTIVE_SRC)"
+  echo "output: $(cfg output 'system default')   volume: $(cfg volume 0.7)"
+}
+
 usage() {
   cat <<EOF
 titancall — TF2 Titan voice notifications, one voice per project
@@ -247,6 +259,8 @@ titancall — TF2 Titan voice notifications, one voice per project
   titancall play <event>       events: done success error fatal warn start notify working idle
                                buckets: down core damage eject warn enter follow attack guard exit misc
   titancall random <event>     play from a random titan
+  titancall on | off | toggle  global mute switch (hooks stay quiet when off)
+  titancall status             show enabled/muted + titan + output
   titancall whoami             show resolved titan + why, for current project
   titancall roster             list all registered project->titan + last fired
   titancall titan list         list installed titans
@@ -281,6 +295,10 @@ main() {
     normalize)  cmd_normalize "$@" ;;
     config)     cmd_config ;;
     test)       cmd_test "$@" ;;
+    on|enable)  cmd_enable ;;
+    off|disable|mute) cmd_disable ;;
+    toggle)     cmd_toggle ;;
+    status)     cmd_status ;;
     *)          cmd_play "$cmd" "$@" ;;
   esac
 }
