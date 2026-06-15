@@ -31,6 +31,7 @@ titan=ion
 output=
 volume=0.7
 cooldown=4
+loudness=-18
 # logical event -> bucket (hooks speak dev-words, not titan-words)
 alias.done=down
 alias.success=core
@@ -254,6 +255,20 @@ cmd_normalize() {
 
 cmd_test() { cmd_play "${1:-notify}"; }
 
+cmd_level() { # loudness-normalize every wav in place to config loudness (EBU R128, one-time)
+  command -v ffmpeg >/dev/null 2>&1 || die "ffmpeg required (brew install ffmpeg)"
+  local target n=0 fail=0 f tmp; target=$(cfg loudness -18)
+  tmp="${TMPDIR:-/tmp}/titancall-lvl.$$.wav"      # temp outside the library (in-dir temp proved flaky)
+  echo "leveling library to ${target} LUFS (this takes a minute)..."
+  while IFS= read -r f; do
+    if ffmpeg -y -i "$f" -af "loudnorm=I=${target}:TP=-1.5:LRA=11" -ar 44100 "$tmp" >/dev/null 2>&1 && [ -s "$tmp" ]; then
+      cp "$tmp" "$f"; n=$((n+1)); [ $((n % 50)) -eq 0 ] && err "...$n"
+    else fail=$((fail+1)); fi
+  done < <(find "$SOUNDS" -iname '*.wav')
+  rm -f "$tmp"
+  echo "leveled $n files${fail:+, $fail failed} to ${target} LUFS"
+}
+
 cmd_enable()  { cfg_set enabled 1; echo "titancall: ENABLED"; }
 cmd_disable() { cfg_set enabled 0; echo "titancall: MUTED (hooks fire but stay quiet)"; }
 cmd_toggle()  { [ "$(cfg enabled 1)" = "0" ] && cmd_enable || cmd_disable; }
@@ -284,6 +299,7 @@ titancall — TF2 Titan voice notifications, one voice per project
   titancall cooldown [secs]    per-voice min gap; collapses bursts (0 = off). default 4
   titancall lines [event]
   titancall normalize          bucket+rename installed wavs into <titan>/<event>/
+  titancall level              loudness-normalize all wavs to config 'loudness' LUFS (one-time, needs ffmpeg)
   titancall config | test [event]
 
 resolution: \$TITANCALL_TITAN > ./.titan (walk up) > registry > claim next free titan
@@ -308,6 +324,7 @@ main() {
     cooldown)   cmd_cooldown "$@" ;;
     lines)      cmd_lines "$@" ;;
     normalize)  cmd_normalize "$@" ;;
+    level)      cmd_level "$@" ;;
     config)     cmd_config ;;
     test)       cmd_test "$@" ;;
     on|enable)  cmd_enable ;;
