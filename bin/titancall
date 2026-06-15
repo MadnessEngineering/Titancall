@@ -1,0 +1,287 @@
+#!/usr/bin/env bash
+# titancall — Titanfall 2 audio notification router
+# Pipe any project/hook into this: `titancall done &`  → this project's Titan speaks a fitting line.
+set -uo pipefail
+
+TITANCALL_HOME="${TITANCALL_HOME:-$HOME/.local/share/titancall}"
+SOUNDS="$TITANCALL_HOME/sounds"
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/titancall"
+CONFIG="$CONFIG_DIR/config"
+REGISTRY="$CONFIG_DIR/registry"      # rows: titan \t project_path \t last_fired_iso
+ACTIVE_SRC=""                        # set by resolve_titan: env|dotfile|registry|claimed|config
+ACTIVE_TITAN=""
+
+# ---- event taxonomy: bucket <= ordered keyword rules (first match wins) ----
+BUCKET_RULES=(
+  "eject|eject"
+  "core|core"
+  "down|titan down|titan destroyed|pilot eliminated|pilot eleminated|pilot destroyed|got you|enemy titan down"
+  "damage|critical damage|heavy damage|compromised|comprimised|casing|reactor|vun"
+  "warn|warning|be aware|outnumbered|multititan|position compromised|postion compromised|on the hull"
+  "enter|pilot control|pilot mode online|pilot mode onlien|pilot mode engaged|controls handed|controls are handed|transfering|transfered|tranfered|manual control|manual operation|have you back|good you returned|onboard|systems nominal|all systems"
+  "guard|gaurd mode|guard mode|gaurdmode"
+  "follow|follow mode|folow mode|following your lead|solid copy|your lead pilot"
+  "attack|engaging|armed|charged|railgun|targeting|40mm|splinter rifle|powering up|weapon|wepond|sensors scanning|focus|plan attack"
+  "exit|disengage|offline"
+)
+
+DEFAULT_CONFIG='titan=ion
+output=
+volume=0.7
+# logical event -> bucket (hooks speak dev-words, not titan-words)
+alias.done=down
+alias.success=core
+alias.error=damage
+alias.fatal=eject
+alias.warn=warn
+alias.start=enter
+alias.notify=follow
+alias.working=attack
+alias.idle=guard'
+
+err()  { printf 'titancall: %s\n' "$*" >&2; }
+die()  { err "$*"; exit 1; }
+
+ensure_config() { [ -f "$CONFIG" ] && return 0; mkdir -p "$CONFIG_DIR"; printf '%s\n' "$DEFAULT_CONFIG" > "$CONFIG"; }
+
+cfg() { local k="$1" d="${2:-}" v; v=$(grep -E "^${k}=" "$CONFIG" 2>/dev/null | head -1 | cut -d= -f2-); [ -n "$v" ] && printf '%s' "$v" || printf '%s' "$d"; }
+
+cfg_set() {
+  local k="$1" v="$2" tmp; ensure_config; tmp="$CONFIG.tmp.$$"
+  if grep -qE "^${k}=" "$CONFIG"; then sed "s|^${k}=.*|${k}=${v}|" "$CONFIG" > "$tmp" && mv "$tmp" "$CONFIG"
+  else cp "$CONFIG" "$tmp" && printf '%s=%s\n' "$k" "$v" >> "$tmp" && mv "$tmp" "$CONFIG"; fi
+}
+
+slugify() { echo "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/\.wav$//; s/[^a-z0-9]+/-/g; s/^-+//; s/-+$//; s/-+/-/g'; }
+
+classify() {
+  local name="$1" rule bucket pats pat
+  for rule in "${BUCKET_RULES[@]}"; do
+    bucket="${rule%%|*}"; pats="${rule#*|}"
+    local IFS='|'; read -ra arr <<< "$pats"
+    for pat in "${arr[@]}"; do [[ "$name" == *"$pat"* ]] && { printf '%s' "$bucket"; return 0; }; done
+  done
+  printf 'misc'
+}
+
+list_titans() { find "$SOUNDS" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; 2>/dev/null | sort; }
+
+# ---- project identity + registry ----
+find_dotfile_dir() {
+  local d="${1:-$PWD}"
+  while [ -n "$d" ] && [ "$d" != "/" ]; do
+    [ -f "$d/.titan" ] && { printf '%s' "$d"; return 0; }
+    d=$(dirname "$d")
+  done
+  return 1
+}
+read_dotfile() { local d; d=$(find_dotfile_dir "${1:-$PWD}") || return 1; head -1 "$d/.titan" | tr -d '[:space:]'; }
+
+project_root() {
+  local d
+  if [ -n "${CLAUDE_PROJECT_DIR:-}" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then printf '%s' "$CLAUDE_PROJECT_DIR"; return; fi
+  d=$(find_dotfile_dir) && { printf '%s' "$d"; return; }
+  d=$(git rev-parse --show-toplevel 2>/dev/null) && [ -n "$d" ] && { printf '%s' "$d"; return; }
+  printf '%s' "$PWD"
+}
+
+reg_lookup() { [ -f "$REGISTRY" ] || return 1; awk -F'\t' -v p="$1" '$2==p{print $1; f=1} END{exit !f}' "$REGISTRY"; }
+reg_used()   { [ -f "$REGISTRY" ] || return 0; awk -F'\t' '{print $1}' "$REGISTRY" | sort -u; }
+reg_write()  {
+  local titan="$1" path="$2" now tmp; now=$(date +%Y-%m-%dT%H:%M:%S)
+  mkdir -p "$CONFIG_DIR"; touch "$REGISTRY"; tmp="$REGISTRY.tmp.$$"
+  awk -F'\t' -v p="$path" '$2!=p' "$REGISTRY" > "$tmp"
+  printf '%s\t%s\t%s\n' "$titan" "$path" "$now" >> "$tmp"; mv "$tmp" "$REGISTRY"
+}
+reg_touch()  { local t; t=$(reg_lookup "$1") || return 1; reg_write "$t" "$1"; }
+
+claim_titan() { # path -> next unused titan (else least-used), persist .titan + registry
+  local path="$1" all=() used t chosen=""
+  while IFS= read -r t; do all+=("$t"); done < <(list_titans)
+  [ ${#all[@]} -eq 0 ] && return 1
+  used=$(reg_used)
+  for t in "${all[@]}"; do grep -qxF "$t" <<<"$used" || { chosen="$t"; break; }; done
+  if [ -z "$chosen" ]; then
+    chosen=$(awk -F'\t' '{c[$1]++} END{for(k in c) print c[k]"\t"k}' "$REGISTRY" | sort -n | head -1 | cut -f2)
+    [ -z "$chosen" ] && chosen="${all[0]}"
+  fi
+  reg_write "$chosen" "$path"
+  [ -d "$path" ] && echo "$chosen" > "$path/.titan" 2>/dev/null
+  printf '%s' "$chosen"
+}
+
+resolve_titan() { # sets globals ACTIVE_TITAN + ACTIVE_SRC (run in current shell, no subshell)
+  local t proot
+  if [ -n "${TITANCALL_TITAN:-}" ]; then ACTIVE_TITAN="$TITANCALL_TITAN"; ACTIVE_SRC="env"; return; fi
+  if t=$(read_dotfile) && [ -n "$t" ]; then ACTIVE_TITAN="$t"; ACTIVE_SRC="dotfile"; return; fi
+  proot=$(project_root)
+  if t=$(reg_lookup "$proot") && [ -n "$t" ]; then ACTIVE_TITAN="$t"; ACTIVE_SRC="registry"; return; fi
+  if t=$(claim_titan "$proot") && [ -n "$t" ]; then ACTIVE_TITAN="$t"; ACTIVE_SRC="claimed"; return; fi
+  ACTIVE_TITAN=$(cfg titan ion); ACTIVE_SRC="config"
+}
+active_titan() { resolve_titan; printf '%s' "$ACTIVE_TITAN"; }
+
+# ---- audio output (macOS SwitchAudioSource) ----
+have_switch() { command -v SwitchAudioSource >/dev/null 2>&1; }
+play_file() {
+  local f="$1" vol output prev; vol=$(cfg volume 0.7); output=$(cfg output "")
+  command -v afplay >/dev/null 2>&1 || die "afplay not found (macOS only for now)"
+  if [ -n "$output" ] && have_switch; then
+    prev=$(SwitchAudioSource -c -t output 2>/dev/null)
+    SwitchAudioSource -t output -s "$output" >/dev/null 2>&1
+    afplay -v "$vol" "$f"
+    [ -n "$prev" ] && SwitchAudioSource -t output -s "$prev" >/dev/null 2>&1
+  else
+    [ -n "$output" ] && err "output '$output' set but SwitchAudioSource missing; using default device"
+    afplay -v "$vol" "$f"
+  fi
+}
+
+resolve_bucket() { local ev="$1" a; a=$(cfg "alias.$ev" ""); [ -n "$a" ] && printf '%s' "$a" || printf '%s' "$ev"; }
+pick_wav() {
+  local titan="$1" bucket="$2" dir="$SOUNDS/$titan/$bucket" files=() pick f
+  [ -d "$dir" ] || dir="$SOUNDS/$titan/misc"
+  [ -d "$dir" ] || return 1
+  while IFS= read -r f; do files+=("$f"); done < <(find "$dir" -maxdepth 1 -iname '*.wav' 2>/dev/null)
+  [ ${#files[@]} -eq 0 ] && return 1
+  pick=$(( RANDOM % ${#files[@]} )); printf '%s' "${files[$pick]}"
+}
+
+# ---- subcommands ----
+cmd_play() {
+  local event="${1:-notify}" titan bucket f
+  titan=$(active_titan)
+  [ -d "$SOUNDS/$titan" ] || die "titan '$titan' has no voice folder (titancall titan list)"
+  bucket=$(resolve_bucket "$event")
+  f=$(pick_wav "$titan" "$bucket") || die "no audio for '$event' (bucket '$bucket') in '$titan'"
+  reg_touch "$(project_root)" 2>/dev/null
+  play_file "$f"
+}
+
+cmd_random() {
+  local event="${1:-notify}" titans=() titan bucket f
+  while IFS= read -r t; do titans+=("$t"); done < <(list_titans)
+  [ ${#titans[@]} -eq 0 ] && die "no titans installed"
+  titan="${titans[$(( RANDOM % ${#titans[@]} ))]}"
+  bucket=$(resolve_bucket "$event")
+  f=$(pick_wav "$titan" "$bucket") || die "no audio for '$event' across titans"
+  err "($titan)"; play_file "$f"
+}
+
+cmd_whoami() {
+  resolve_titan
+  echo "titan:   $ACTIVE_TITAN  (via $ACTIVE_SRC)"
+  echo "project: $(project_root)"
+}
+
+cmd_roster() {
+  [ -f "$REGISTRY" ] && [ -s "$REGISTRY" ] || { echo "(registry empty)"; return; }
+  { printf 'TITAN\tPROJECT\tLAST_FIRED\n'; sort -k1,1 "$REGISTRY"; } | column -t -s "$(printf '\t')"
+}
+
+cmd_titan() {
+  case "${1:-show}" in
+    list)    list_titans ;;
+    show|"") cmd_whoami ;;
+    here)
+      shift; [ -n "${1:-}" ] || die "usage: titancall titan here <name>"
+      [ -d "$SOUNDS/$1" ] || die "unknown titan '$1' (titancall titan list)"
+      local root; root=$(project_root); echo "$1" > "$root/.titan"; reg_write "$1" "$root"
+      echo "registered $root as titan: $1" ;;
+    *)
+      [ -d "$SOUNDS/$1" ] || die "unknown titan '$1' (titancall titan list)"
+      cfg_set titan "$1"; echo "default titan: $1" ;;
+  esac
+}
+
+cmd_output() {
+  case "${1:-list}" in
+    list|"") have_switch || die "brew install switchaudio-osx"; SwitchAudioSource -a -t output ;;
+    default) cfg_set output ""; echo "output: system default" ;;
+    *) cfg_set output "$1"; echo "output: $1" ;;
+  esac
+}
+
+cmd_volume() { [ -n "${1:-}" ] && { cfg_set volume "$1"; echo "volume: $1"; } || echo "volume: $(cfg volume 0.7)"; }
+
+cmd_lines() {
+  local titan; titan=$(active_titan)
+  if [ -n "${1:-}" ]; then
+    local b; b=$(resolve_bucket "$1"); echo "[$titan/$b]"
+    find "$SOUNDS/$titan/$b" -maxdepth 1 -iname '*.wav' -exec basename {} \; 2>/dev/null | sort
+  else
+    echo "[$titan] buckets:"
+    for d in "$SOUNDS/$titan"/*/; do
+      [ -d "$d" ] || continue
+      printf '  %-8s %s\n' "$(basename "$d")" "$(find "$d" -maxdepth 1 -iname '*.wav' | wc -l | tr -d ' ')"
+    done
+  fi
+}
+
+cmd_config() { ensure_config; echo "# $CONFIG"; cat "$CONFIG"; }
+
+cmd_normalize() {
+  local titan_dir f base bucket slug dest n moved=0
+  for titan_dir in "$SOUNDS"/*/; do
+    [ -d "$titan_dir" ] || continue
+    while IFS= read -r f; do
+      base=$(basename "$f")
+      bucket=$(classify "$(echo "$base" | tr '[:upper:]' '[:lower:]')")
+      mkdir -p "$titan_dir$bucket"
+      slug=$(slugify "$base"); [ -z "$slug" ] && slug="line"
+      dest="$titan_dir$bucket/$slug.wav"; n=1
+      while [ -e "$dest" ]; do dest="$titan_dir$bucket/$slug-$n.wav"; n=$((n+1)); done
+      mv "$f" "$dest" && moved=$((moved+1))
+    done < <(find "$titan_dir" -maxdepth 1 -iname '*.wav' 2>/dev/null)
+  done
+  echo "normalized: $moved files bucketed"
+}
+
+cmd_test() { cmd_play "${1:-notify}"; }
+
+usage() {
+  cat <<EOF
+titancall — TF2 Titan voice notifications, one voice per project
+
+  titancall <event>            play event for this project's titan
+  titancall play <event>       events: done success error fatal warn start notify working idle
+                               buckets: down core damage eject warn enter follow attack guard exit misc
+  titancall random <event>     play from a random titan
+  titancall whoami             show resolved titan + why, for current project
+  titancall roster             list all registered project->titan + last fired
+  titancall titan list         list installed titans
+  titancall titan here <name>  pin current project to <name> (writes ./.titan + registry)
+  titancall titan <name>       set global default titan (config)
+  titancall output list|NAME|default
+  titancall volume [0..1]
+  titancall lines [event]
+  titancall normalize          bucket+rename installed wavs into <titan>/<event>/
+  titancall config | test [event]
+
+resolution: \$TITANCALL_TITAN > ./.titan (walk up) > registry > claim next free titan
+config:   $CONFIG
+registry: $REGISTRY
+sounds:   $SOUNDS
+EOF
+}
+
+main() {
+  ensure_config
+  local cmd="${1:-}"; shift || true
+  case "$cmd" in
+    ""|help|-h|--help) usage ;;
+    play)       cmd_play "$@" ;;
+    random)     cmd_random "$@" ;;
+    whoami)     cmd_whoami ;;
+    roster)     cmd_roster ;;
+    titan)      cmd_titan "$@" ;;
+    output)     cmd_output "$@" ;;
+    volume|vol) cmd_volume "$@" ;;
+    lines)      cmd_lines "$@" ;;
+    normalize)  cmd_normalize "$@" ;;
+    config)     cmd_config ;;
+    test)       cmd_test "$@" ;;
+    *)          cmd_play "$cmd" "$@" ;;
+  esac
+}
+main "$@"
