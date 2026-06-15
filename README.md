@@ -83,6 +83,11 @@ Run `./install-hooks.sh` to wire these into `~/.claude/settings.json` (idempoten
 `PreToolUse`/`PostToolUse` are intentionally excluded — they fire on every tool call. Edit the `EVENTS`
 map in `install-hooks.sh` to add/trim. Too chatty? `titancall off`.
 
+**Cooldown** — a burst of the same event (e.g. `SubagentStop` firing once per subagent in a workflow)
+would stampede the same voice. `titancall` enforces a per-voice minimum gap (default 4s): within the
+window, extra fires return silently. Distinct titans can still overlap. Tune with `titancall cooldown <secs>`
+(0 = off). State lives in `~/.local/share/titancall/state/<titan>.last`.
+
 ## Shell wiring
 
 ```sh

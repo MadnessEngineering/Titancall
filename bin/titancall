@@ -5,6 +5,7 @@ set -uo pipefail
 
 TITANCALL_HOME="${TITANCALL_HOME:-$HOME/.local/share/titancall}"
 SOUNDS="$TITANCALL_HOME/sounds"
+STATE="$TITANCALL_HOME/state"        # per-titan last-fired epoch for cooldown
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/titancall"
 CONFIG="$CONFIG_DIR/config"
 REGISTRY="$CONFIG_DIR/registry"      # rows: titan \t project_path \t last_fired_iso
@@ -29,6 +30,7 @@ DEFAULT_CONFIG='enabled=1
 titan=ion
 output=
 volume=0.7
+cooldown=4
 # logical event -> bucket (hooks speak dev-words, not titan-words)
 alias.done=down
 alias.success=core
@@ -149,11 +151,21 @@ pick_wav() {
 }
 
 # ---- subcommands ----
+cooldown_ok() { # titan -> 0 if allowed to play now (and stamps), 1 if within cooldown
+  local titan="$1" cd now last sf; cd=$(cfg cooldown 4)
+  [ "$cd" -gt 0 ] 2>/dev/null || return 0
+  mkdir -p "$STATE"; sf="$STATE/$titan.last"
+  now=$(date +%s); last=$(cat "$sf" 2>/dev/null || echo 0)
+  [ $(( now - last )) -lt "$cd" ] && return 1
+  echo "$now" > "$sf"; return 0
+}
+
 cmd_play() {
   [ "$(cfg enabled 1)" = "0" ] && return 0     # global mute gate (hooks call us anyway, stay quiet)
   local event="${1:-notify}" titan bucket f
   titan=$(active_titan)
   [ -d "$SOUNDS/$titan" ] || die "titan '$titan' has no voice folder (titancall titan list)"
+  cooldown_ok "$titan" || return 0             # per-voice cooldown: collapse bursts (e.g. SubagentStop)
   bucket=$(resolve_bucket "$event")
   f=$(pick_wav "$titan" "$bucket") || die "no audio for '$event' (bucket '$bucket') in '$titan'"
   reg_touch "$(project_root)" 2>/dev/null
@@ -205,6 +217,7 @@ cmd_output() {
 }
 
 cmd_volume() { [ -n "${1:-}" ] && { cfg_set volume "$1"; echo "volume: $1"; } || echo "volume: $(cfg volume 0.7)"; }
+cmd_cooldown() { [ -n "${1:-}" ] && { cfg_set cooldown "$1"; echo "cooldown: ${1}s per voice"; } || echo "cooldown: $(cfg cooldown 4)s per voice"; }
 
 cmd_lines() {
   local titan; titan=$(active_titan)
@@ -268,6 +281,7 @@ titancall — TF2 Titan voice notifications, one voice per project
   titancall titan <name>       set global default titan (config)
   titancall output list|NAME|default
   titancall volume [0..1]
+  titancall cooldown [secs]    per-voice min gap; collapses bursts (0 = off). default 4
   titancall lines [event]
   titancall normalize          bucket+rename installed wavs into <titan>/<event>/
   titancall config | test [event]
@@ -291,6 +305,7 @@ main() {
     titan)      cmd_titan "$@" ;;
     output)     cmd_output "$@" ;;
     volume|vol) cmd_volume "$@" ;;
+    cooldown)   cmd_cooldown "$@" ;;
     lines)      cmd_lines "$@" ;;
     normalize)  cmd_normalize "$@" ;;
     config)     cmd_config ;;
