@@ -15,8 +15,13 @@ titancall start &     # "Pilot mode online."
 
 ```sh
 ./install.sh                  # symlinks bin/titancall -> ~/.local/bin, seeds config
+./install-hooks.sh            # adds Stop/Notification hooks to ~/.claude/settings.json (idempotent)
 brew install switchaudio-osx  # only needed to route to a non-default output device
 ```
+
+`install-hooks.sh` merges into existing hooks — it never clobbers what's already there, and re-running
+is a safe no-op. Pass a path to target a different settings file: `./install-hooks.sh ./.claude/settings.json`.
+Mute without touching hooks: `titancall off` (re-enable with `titancall on`).
 
 Voice library lives outside the repo (it's ~400M of `.wav`) at
 `~/.local/share/titancall/sounds/<titan>/<event>/`. Drop new lines there and run `titancall normalize`.
@@ -62,16 +67,21 @@ own voice automatically — no per-project hook config.
 
 ## Claude Code wiring
 
-`~/.claude/settings.json`:
+Run `./install-hooks.sh` to wire these into `~/.claude/settings.json` (idempotent, preserves existing hooks):
 
-```json
-{
-  "hooks": {
-    "Stop":         [{ "hooks": [{ "type": "command", "command": "titancall done &" }] }],
-    "Notification": [{ "hooks": [{ "type": "command", "command": "titancall notify &" }] }]
-  }
-}
-```
+| Claude Code hook | titancall event | sounds like |
+|------------------|-----------------|-------------|
+| SessionStart       | start   | "Pilot mode online" |
+| Stop               | done    | "Enemy Titan down" |
+| Notification       | notify  | "Following your lead, Pilot" |
+| SubagentStop       | follow  | "Solid copy" |
+| PostToolUseFailure | error   | "Critical damage sustained" |
+| PermissionRequest  | warn    | "Warning" |
+| TaskCompleted      | success | "Core ready" |
+| SessionEnd         | exit    | "Disengage" |
+
+`PreToolUse`/`PostToolUse` are intentionally excluded — they fire on every tool call. Edit the `EVENTS`
+map in `install-hooks.sh` to add/trim. Too chatty? `titancall off`.
 
 ## Shell wiring
 
