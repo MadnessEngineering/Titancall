@@ -128,15 +128,28 @@ active_titan() { resolve_titan; printf '%s' "$ACTIVE_TITAN"; }
 # ---- audio output (macOS SwitchAudioSource) ----
 have_switch() { command -v SwitchAudioSource >/dev/null 2>&1; }
 play_file() {
-  local f="$1" vol output prev; vol=$(cfg volume 0.7); output=$(cfg output "")
+  # Non-blocking: playback is detached (own subshell, fds closed) so titancall returns
+  # immediately and the sound finishes orphaned — hooks never wait on it.
+  # Set TITANCALL_WAIT=1 to block until the clip finishes (handy for scripting/tests).
+  local f="$1" vol output; vol=$(cfg volume 0.7); output=$(cfg output "")
   command -v afplay >/dev/null 2>&1 || die "afplay not found (macOS only for now)"
+  [ -n "$output" ] && ! have_switch && err "output '$output' set but SwitchAudioSource missing; using default device"
+  if [ "${TITANCALL_WAIT:-0}" = "1" ]; then
+    _play_seq "$f" "$vol" "$output"
+  else
+    ( _play_seq "$f" "$vol" "$output" ) </dev/null >/dev/null 2>&1 &
+    disown 2>/dev/null || true
+  fi
+}
+
+_play_seq() { # f vol output  — switch device if set, play, restore. Blocks (caller decides).
+  local f="$1" vol="$2" output="$3" prev
   if [ -n "$output" ] && have_switch; then
     prev=$(SwitchAudioSource -c -t output 2>/dev/null)
     SwitchAudioSource -t output -s "$output" >/dev/null 2>&1
     afplay -v "$vol" "$f"
     [ -n "$prev" ] && SwitchAudioSource -t output -s "$prev" >/dev/null 2>&1
   else
-    [ -n "$output" ] && err "output '$output' set but SwitchAudioSource missing; using default device"
     afplay -v "$vol" "$f"
   fi
 }
@@ -311,6 +324,7 @@ titancall — TF2 Titan voice notifications, one voice per project
   titancall level              loudness-normalize all wavs to config 'loudness' LUFS (one-time, needs ffmpeg)
   titancall config | test [event]
 
+playback is non-blocking (detached) so hooks never wait; set TITANCALL_WAIT=1 to block until the clip ends
 resolution: \$TITANCALL_TITAN > ./.titan (walk up) > registry > claim next free titan
 config:   $CONFIG
 registry: $REGISTRY
