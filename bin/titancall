@@ -143,7 +143,8 @@ play_file() {
 
 resolve_bucket() { local ev="$1" a; a=$(cfg "alias.$ev" ""); [ -n "$a" ] && printf '%s' "$a" || printf '%s' "$ev"; }
 pick_wav() {
-  local titan="$1" bucket="$2" dir="$SOUNDS/$titan/$bucket" files=() pick f
+  local titan="$1" bucket="$2" files=() pick f dir
+  dir="$SOUNDS/$titan/$bucket"
   [ -d "$dir" ] || dir="$SOUNDS/$titan/misc"
   [ -d "$dir" ] || return 1
   while IFS= read -r f; do files+=("$f"); done < <(find "$dir" -maxdepth 1 -iname '*.wav' 2>/dev/null)
@@ -171,6 +172,14 @@ cmd_play() {
   f=$(pick_wav "$titan" "$bucket") || die "no audio for '$event' (bucket '$bucket') in '$titan'"
   reg_touch "$(project_root)" 2>/dev/null
   play_file "$f"
+}
+
+confirm() { # titan event — immediate confirmation chirp: respects mute, ignores cooldown, detached
+  [ "$(cfg enabled 1)" = "0" ] && return 0
+  local titan="$1" event="$2" f
+  [ -d "$SOUNDS/$titan" ] || return 0
+  f=$(pick_wav "$titan" "$(resolve_bucket "$event")") || return 0
+  ( play_file "$f" >/dev/null 2>&1 & )
 }
 
 cmd_random() {
@@ -202,22 +211,22 @@ cmd_titan() {
       shift; [ -n "${1:-}" ] || die "usage: titancall titan here <name>"
       [ -d "$SOUNDS/$1" ] || die "unknown titan '$1' (titancall titan list)"
       local root; root=$(project_root); echo "$1" > "$root/.titan"; reg_write "$1" "$root"
-      echo "registered $root as titan: $1" ;;
+      echo "registered $root as titan: $1"; confirm "$1" enter ;;
     *)
       [ -d "$SOUNDS/$1" ] || die "unknown titan '$1' (titancall titan list)"
-      cfg_set titan "$1"; echo "default titan: $1" ;;
+      cfg_set titan "$1"; echo "default titan: $1"; confirm "$1" enter ;;
   esac
 }
 
 cmd_output() {
   case "${1:-list}" in
     list|"") have_switch || die "brew install switchaudio-osx"; SwitchAudioSource -a -t output ;;
-    default) cfg_set output ""; echo "output: system default" ;;
-    *) cfg_set output "$1"; echo "output: $1" ;;
+    default) cfg_set output ""; echo "output: system default"; confirm "$(active_titan)" notify ;;
+    *) cfg_set output "$1"; echo "output: $1"; confirm "$(active_titan)" notify ;;   # chirps on the NEW device
   esac
 }
 
-cmd_volume() { [ -n "${1:-}" ] && { cfg_set volume "$1"; echo "volume: $1"; } || echo "volume: $(cfg volume 0.7)"; }
+cmd_volume() { [ -n "${1:-}" ] && { cfg_set volume "$1"; echo "volume: $1"; confirm "$(active_titan)" notify; } || echo "volume: $(cfg volume 0.7)"; }
 cmd_cooldown() { [ -n "${1:-}" ] && { cfg_set cooldown "$1"; echo "cooldown: ${1}s per voice"; } || echo "cooldown: $(cfg cooldown 4)s per voice"; }
 
 cmd_lines() {
@@ -269,7 +278,7 @@ cmd_level() { # loudness-normalize every wav in place to config loudness (EBU R1
   echo "leveled $n files${fail:+, $fail failed} to ${target} LUFS"
 }
 
-cmd_enable()  { cfg_set enabled 1; echo "titancall: ENABLED"; }
+cmd_enable()  { cfg_set enabled 1; echo "titancall: ENABLED"; confirm "$(active_titan)" enter; }
 cmd_disable() { cfg_set enabled 0; echo "titancall: MUTED (hooks fire but stay quiet)"; }
 cmd_toggle()  { [ "$(cfg enabled 1)" = "0" ] && cmd_enable || cmd_disable; }
 cmd_status()  {

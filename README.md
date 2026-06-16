@@ -48,6 +48,10 @@ Hooks speak dev-words; config aliases map them to Titan voice-line **buckets**:
 
 Raw buckets are also playable directly: `down core damage eject warn enter follow attack guard exit misc`.
 
+**Confirmation chirps** — some commands play an immediate sound (bypassing cooldown, respecting mute):
+`titan here <name>` / `titan <name>` greet you in that voice; `output <device>` chirps **on the new device**
+so you confirm routing; `volume <n>` plays at the new level; `on` proves sound is back.
+
 ## Per-project identity
 
 Active Titan is resolved by precedence:
