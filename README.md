@@ -1,4 +1,4 @@
-# protocol2 — titancall
+# titancall
 
 > *Protocol 3: Protect the Pilot.* A notification router that speaks Titanfall 2 Titan voice lines.
 
