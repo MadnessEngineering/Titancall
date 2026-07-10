@@ -259,7 +259,40 @@ cmd_lines() {
   fi
 }
 
-cmd_config() { ensure_config; echo "# $CONFIG"; cat "$CONFIG"; }
+bucket_names() { local rule; for rule in "${BUCKET_RULES[@]}"; do printf '%s\n' "${rule%%|*}"; done; echo misc; }
+
+CONFIG_KEYS="enabled titan output volume cooldown loudness claim"
+key_ok() { # 0 if key is a known scalar, alias.*, or per-event volume./cooldown. override
+  case "$1" in
+    alias.*|volume.*|cooldown.*) return 0 ;;
+    *) case " $CONFIG_KEYS " in *" $1 "*) return 0 ;; *) return 1 ;; esac ;;
+  esac
+}
+cmd_config() {
+  ensure_config
+  local sub="${1:-}" key="${2:-}"
+  case "$sub" in
+    "")  echo "# $CONFIG"; cat "$CONFIG" ;;
+    get) [ -n "$key" ] || die "usage: titancall config get <key>"; cfg "$key"; echo ;;
+    set)
+      [ -n "$key" ] && [ $# -ge 3 ] || die "usage: titancall config set <key> <val>"
+      key_ok "$key" || die "unknown key '$key' (valid: $CONFIG_KEYS, alias.*, volume.*, cooldown.*)"
+      cfg_set "$key" "$3"; echo "$key=$3" ;;
+    *)   die "usage: titancall config [get <k> | set <k> <v>]" ;;
+  esac
+}
+
+cmd_alias() { # list alias.* mappings, or set alias.<event>=<bucket> (bucket must be known)
+  local event="${1:-}" bucket="${2:-}" buckets
+  buckets=$(bucket_names | paste -sd' ' -)
+  if [ -z "$event" ]; then
+    grep -E '^alias\.' "$CONFIG" 2>/dev/null | sed -E 's/^alias\.([^=]+)=(.*)/\1 -> \2/' | sort
+    return 0
+  fi
+  [ -n "$bucket" ] || die "usage: titancall alias <event> <bucket>   (buckets: $buckets)"
+  bucket_names | grep -qxF "$bucket" || die "unknown bucket '$bucket' (valid: $buckets)"
+  cfg_set "alias.$event" "$bucket"; echo "alias: $event -> $bucket"
+}
 
 cmd_normalize() {
   local titan_dir f base bucket slug dest n moved=0
@@ -322,10 +355,11 @@ titancall — TF2 Titan voice notifications, one voice per project
   titancall output list|NAME|default
   titancall volume [0..1]
   titancall cooldown [secs]    per-voice min gap; collapses bursts (0 = off). default 4
+  titancall alias [<event> <bucket>]  list or remap event->bucket
   titancall lines [event]
   titancall normalize          bucket+rename installed wavs into <titan>/<event>/
   titancall level              loudness-normalize all wavs to config 'loudness' LUFS (one-time, needs ffmpeg)
-  titancall config | test [event]
+  titancall config [get <k> | set <k> <v>] | test [event]
 
 playback is non-blocking (detached) so hooks never wait; set TITANCALL_WAIT=1 to block until the clip ends
 resolution: \$TITANCALL_TITAN > ./.titan (walk up) > registry > claim next free titan
@@ -351,7 +385,8 @@ main() {
     lines)      cmd_lines "$@" ;;
     normalize)  cmd_normalize "$@" ;;
     level)      cmd_level "$@" ;;
-    config)     cmd_config ;;
+    config)     cmd_config "$@" ;;
+    alias)      cmd_alias "$@" ;;
     test)       cmd_test "$@" ;;
     on|enable)  cmd_enable ;;
     off|disable|mute) cmd_disable ;;
