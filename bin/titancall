@@ -32,6 +32,7 @@ output=
 volume=0.7
 cooldown=4
 loudness=-18
+claim=1
 # logical event -> bucket (hooks speak dev-words, not titan-words)
 alias.done=down
 alias.success=core
@@ -120,7 +121,7 @@ resolve_titan() { # sets globals ACTIVE_TITAN + ACTIVE_SRC (run in current shell
   if t=$(read_dotfile) && [ -n "$t" ]; then ACTIVE_TITAN="$t"; ACTIVE_SRC="dotfile"; return; fi
   proot=$(project_root)
   if t=$(reg_lookup "$proot") && [ -n "$t" ]; then ACTIVE_TITAN="$t"; ACTIVE_SRC="registry"; return; fi
-  if t=$(claim_titan "$proot") && [ -n "$t" ]; then ACTIVE_TITAN="$t"; ACTIVE_SRC="claimed"; return; fi
+  if [ "$(cfg claim 1)" != "0" ] && t=$(claim_titan "$proot") && [ -n "$t" ]; then ACTIVE_TITAN="$t"; ACTIVE_SRC="claimed"; return; fi
   ACTIVE_TITAN=$(cfg titan ion); ACTIVE_SRC="config"
 }
 active_titan() { resolve_titan; printf '%s' "$ACTIVE_TITAN"; }
