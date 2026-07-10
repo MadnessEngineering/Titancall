@@ -132,7 +132,8 @@ play_file() {
   # Non-blocking: playback is detached (own subshell, fds closed) so titancall returns
   # immediately and the sound finishes orphaned — hooks never wait on it.
   # Set TITANCALL_WAIT=1 to block until the clip finishes (handy for scripting/tests).
-  local f="$1" vol output; vol=$(cfg volume 0.7); output=$(cfg output "")
+  local f="$1" event="${2:-}" vol output    # event optional: volume.<event> overrides global volume
+  vol=$([ -n "$event" ] && cfg "volume.$event" "$(cfg volume 0.7)" || cfg volume 0.7); output=$(cfg output "")
   command -v afplay >/dev/null 2>&1 || die "afplay not found (macOS only for now)"
   [ -n "$output" ] && ! have_switch && err "output '$output' set but SwitchAudioSource missing; using default device"
   if [ "${TITANCALL_WAIT:-0}" = "1" ]; then
@@ -167,8 +168,9 @@ pick_wav() {
 }
 
 # ---- subcommands ----
-cooldown_ok() { # titan -> 0 if allowed to play now (and stamps), 1 if within cooldown
-  local titan="$1" cd now last sf; cd=$(cfg cooldown 4)
+cooldown_ok() { # titan [event] -> 0 if allowed to play now (and stamps), 1 if within cooldown
+  local titan="$1" event="${2:-}" cd now last sf    # event optional: cooldown.<event> overrides global cooldown
+  cd=$([ -n "$event" ] && cfg "cooldown.$event" "$(cfg cooldown 4)" || cfg cooldown 4)
   [ "$cd" -gt 0 ] 2>/dev/null || return 0
   mkdir -p "$STATE"; sf="$STATE/$titan.last"
   now=$(date +%s); last=$(cat "$sf" 2>/dev/null || echo 0)
@@ -181,11 +183,11 @@ cmd_play() {
   local event="${1:-notify}" titan bucket f
   titan=$(active_titan)
   [ -d "$SOUNDS/$titan" ] || die "titan '$titan' has no voice folder (titancall titan list)"
-  cooldown_ok "$titan" || return 0             # per-voice cooldown: collapse bursts (e.g. SubagentStop)
+  cooldown_ok "$titan" "$event" || return 0    # per-voice cooldown: collapse bursts (e.g. SubagentStop)
   bucket=$(resolve_bucket "$event")
   f=$(pick_wav "$titan" "$bucket") || die "no audio for '$event' (bucket '$bucket') in '$titan'"
   reg_touch "$(project_root)" 2>/dev/null
-  play_file "$f"
+  play_file "$f" "$event"
 }
 
 confirm() { # titan event — immediate confirmation chirp: respects mute, ignores cooldown, detached
