@@ -92,6 +92,23 @@ would stampede the same voice. `titancall` enforces a per-voice minimum gap (def
 window, extra fires return silently. Distinct titans can still overlap. Tune with `titancall cooldown <secs>`
 (0 = off). State lives in `~/.local/share/titancall/state/<titan>.last`.
 
+## Playback log
+
+Every played line is appended to `~/.local/share/titancall/log` (tab-separated:
+timestamp, event, titan, bucket, wav, project path) — so you can see which soundbyte
+just fired from which project.
+
+```
+titancall log            # last 20 plays, table view
+titancall log 50         # last 50
+titancall log off        # disable logging (config key 'log'), if it ever causes lag
+titancall log on         # re-enable
+titancall log clear      # wipe the file
+```
+
+Logging is a single `printf >>` per play — effectively free — but `log off` (or
+`titancall config set log 0`) turns it off entirely.
+
 ## Shell wiring
 
 ```sh
@@ -111,4 +128,6 @@ titancall volume [0..1]
 titancall lines [event]
 titancall normalize          re-bucket + rename installed wavs
 titancall config | test [event]
+titancall log [n] | on | off | clear
+
 ```

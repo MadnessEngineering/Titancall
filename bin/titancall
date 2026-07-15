@@ -33,6 +33,7 @@ volume=0.7
 cooldown=4
 loudness=-18
 claim=1
+log=1
 # logical event -> bucket (hooks speak dev-words, not titan-words)
 alias.done=down
 alias.success=core
@@ -99,6 +100,13 @@ reg_write()  {
   printf '%s\t%s\t%s\n' "$titan" "$path" "$now" >> "$tmp"; mv "$tmp" "$REGISTRY"
 }
 reg_touch()  { local t; t=$(reg_lookup "$1") || return 1; reg_write "$t" "$1"; }
+
+LOGFILE="$TITANCALL_HOME/log"        # rows: iso \t event \t titan \t bucket \t wav \t project_path
+log_play() { # event titan bucket wav_path project_path — append one row, or nothing when log=0
+  [ "$(cfg log 1)" = "0" ] && return 0
+  mkdir -p "$TITANCALL_HOME"
+  printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$(date +%Y-%m-%dT%H:%M:%S)" "$1" "$2" "$3" "$(basename "$4")" "$5" >> "$LOGFILE"
+}
 
 claim_titan() { # path -> next unused titan (else least-used), persist .titan + registry
   local path="$1" all=() used t chosen=""
@@ -180,13 +188,15 @@ cooldown_ok() { # titan [event] -> 0 if allowed to play now (and stamps), 1 if w
 
 cmd_play() {
   [ "$(cfg enabled 1)" = "0" ] && return 0     # global mute gate (hooks call us anyway, stay quiet)
-  local event="${1:-notify}" titan bucket f
+  local event="${1:-notify}" titan bucket f proot
   titan=$(active_titan)
   [ -d "$SOUNDS/$titan" ] || die "titan '$titan' has no voice folder (titancall titan list)"
   cooldown_ok "$titan" "$event" || return 0    # per-voice cooldown: collapse bursts (e.g. SubagentStop)
   bucket=$(resolve_bucket "$event")
   f=$(pick_wav "$titan" "$bucket") || die "no audio for '$event' (bucket '$bucket') in '$titan'"
-  reg_touch "$(project_root)" 2>/dev/null
+  proot=$(project_root)
+  reg_touch "$proot" 2>/dev/null
+  log_play "$event" "$titan" "$bucket" "$f" "$proot"
   play_file "$f" "$event"
 }
 
@@ -205,7 +215,9 @@ cmd_random() {
   titan="${titans[$(( RANDOM % ${#titans[@]} ))]}"
   bucket=$(resolve_bucket "$event")
   f=$(pick_wav "$titan" "$bucket") || die "no audio for '$event' across titans"
-  err "($titan)"; play_file "$f"
+  err "($titan)"
+  log_play "random:$event" "$titan" "$bucket" "$f" "$(project_root)"
+  play_file "$f"
 }
 
 cmd_whoami() {
@@ -261,7 +273,7 @@ cmd_lines() {
 
 bucket_names() { local rule; for rule in "${BUCKET_RULES[@]}"; do printf '%s\n' "${rule%%|*}"; done; echo misc; }
 
-CONFIG_KEYS="enabled titan output volume cooldown loudness claim"
+CONFIG_KEYS="enabled titan output volume cooldown loudness claim log"
 key_ok() { # 0 if key is a known scalar, alias.*, or per-event volume./cooldown. override
   case "$1" in
     alias.*|volume.*|cooldown.*) return 0 ;;
@@ -313,6 +325,17 @@ cmd_normalize() {
 
 cmd_test() { cmd_play "${1:-notify}"; }
 
+cmd_log() { # log [n] — last n rows (default 20); log clear — truncate; log off/on — toggle key
+  case "${1:-}" in
+    clear) : > "$LOGFILE"; echo "log cleared" ;;
+    off)   cfg_set log 0; echo "log: OFF" ;;
+    on)    cfg_set log 1; echo "log: ON" ;;
+    *)
+      [ -s "$LOGFILE" ] || { echo "(log empty)"; return; }
+      { printf 'WHEN\tEVENT\tTITAN\tBUCKET\tWAV\tPROJECT\n'; tail -n "${1:-20}" "$LOGFILE"; } | column -t -s "$(printf '\t')" ;;
+  esac
+}
+
 cmd_level() { # loudness-normalize every wav in place to config loudness (EBU R128, one-time)
   command -v ffmpeg >/dev/null 2>&1 || die "ffmpeg required (brew install ffmpeg)"
   local target n=0 fail=0 f tmp; target=$(cfg loudness -18)
@@ -360,11 +383,14 @@ titancall — TF2 Titan voice notifications, one voice per project
   titancall normalize          bucket+rename installed wavs into <titan>/<event>/
   titancall level              loudness-normalize all wavs to config 'loudness' LUFS (one-time, needs ffmpeg)
   titancall config [get <k> | set <k> <v>] | test [event]
+  titancall log [n]            show last n played (default 20): when/event/titan/bucket/wav/project
+  titancall log on|off|clear   toggle playback logging (config 'log') or wipe the log file
 
 playback is non-blocking (detached) so hooks never wait; set TITANCALL_WAIT=1 to block until the clip ends
 resolution: \$TITANCALL_TITAN > ./.titan (walk up) > registry > claim next free titan
 config:   $CONFIG
 registry: $REGISTRY
+log:      $LOGFILE
 sounds:   $SOUNDS
 EOF
 }
@@ -388,6 +414,7 @@ main() {
     config)     cmd_config "$@" ;;
     alias)      cmd_alias "$@" ;;
     test)       cmd_test "$@" ;;
+    log)        cmd_log "$@" ;;
     on|enable)  cmd_enable ;;
     off|disable|mute) cmd_disable ;;
     toggle)     cmd_toggle ;;
