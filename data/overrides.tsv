@@ -1,0 +1,3 @@
+# titan	slug	bucket — written by `titancall ui`; merged OVER build_manifest.py's
+# curated OVERRIDES, so a UI move always wins. Hand-edit freely, then run
+# `python3 scripts/build_manifest.py --apply`.

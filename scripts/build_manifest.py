@@ -5,7 +5,7 @@ The wav filenames ARE the transcripts (named by ear; typos preserved as ground t
 This script:
   1. walks $TITANCALL_HOME/sounds/<titan>/<bucket>/*.wav
   2. derives a transcript from each filename
-  3. applies semantic OVERRIDES (below) to fix mis-bucketed lines and empty `misc`
+  3. applies semantic OVERRIDES (below), then data/overrides.tsv on top (see USER_OVERRIDES)
   4. writes:
        data/manifest.tsv  — reviewable: titan file current proposed transcript source
        data/buckets.tsv   — authoritative titan\tslug\tbucket  (consumed by `titancall normalize`)
@@ -13,6 +13,10 @@ This script:
 
 OVERRIDES key = (titan, slug) where slug is the filename without .wav.
 Only list files whose bucket should CHANGE — everything else keeps its current bucket.
+
+data/overrides.tsv (`titan \t slug \t bucket`) is the machine-writable twin, produced by
+`titancall ui` when you move a wav. It is applied AFTER the dict below, so a UI move always
+wins over a curated guess — that way the console never has to rewrite this source file.
 
 Bucket semantics (target of Claude hooks via alias map):
   down   enemy killed/eliminated/destroyed
@@ -121,7 +125,26 @@ def transcript(slug):
     return slug.replace("-", " ").strip()
 
 
+USER_OVERRIDES = os.path.join(DATA, "overrides.tsv")
+
+
+def user_overrides():
+    """data/overrides.tsv -> {(titan, slug): bucket}. Written by `titancall ui`; wins over OVERRIDES."""
+    ov = {}
+    if not os.path.exists(USER_OVERRIDES):
+        return ov
+    with open(USER_OVERRIDES) as f:
+        for line in f:
+            if not line.strip() or line.lstrip().startswith("#"):
+                continue
+            parts = line.rstrip("\n").split("\t")
+            if len(parts) >= 3:
+                ov[(parts[0], parts[1])] = parts[2]
+    return ov
+
+
 def walk():
+    user = user_overrides()
     rows = []
     for titan in sorted(os.listdir(SOUNDS)):
         tdir = os.path.join(SOUNDS, titan)
@@ -136,7 +159,7 @@ def walk():
                     continue
                 slug = fn[:-4]
                 cur = bucket
-                prop = OVERRIDES.get((titan, slug), cur)
+                prop = user.get((titan, slug), OVERRIDES.get((titan, slug), cur))
                 if (titan, slug) in TRANSCRIBED:
                     src, tr = TRANSCRIBED[(titan, slug)]
                 else:
@@ -163,7 +186,9 @@ def main():
             f.write(f"{t}\t{slug}\t{prop}\n")
 
     moves = [(t, fn, cur, prop) for t, fn, slug, cur, prop, tr, src in rows if cur != prop]
-    print(f"{len(rows)} wavs, {len(moves)} reclassified")
+    nuser = len(user_overrides())
+    print(f"{len(rows)} wavs, {len(moves)} reclassified"
+          + (f" ({nuser} ui override rows)" if nuser else ""))
     for t, fn, cur, prop in moves:
         print(f"  {t}: {cur} -> {prop}  {fn}")
 

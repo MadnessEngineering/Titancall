@@ -39,6 +39,7 @@ ion	splinter-rifle-on-target.wav	attack	attack	splinter rifle on target	filename
 ion	firing-laser-core.wav	core	core	firing laser core	filename
 ion	laser-core-ready.wav	core	core	laser core ready	filename
 ion	advice-defensive-system.wav	damage	damage	advice defensive system	filename
+ion	asfa.wav	damage	damage	severe damage	stt
 ion	critical-damage-sustained-advise-defensive-system.wav	damage	damage	critical damage sustained advise defensive system	filename
 ion	critical-damage-sustained.wav	damage	damage	critical damage sustained	filename
 ion	critical-damage-utlize-tripwire.wav	damage	damage	critical damage utlize tripwire	filename
@@ -59,7 +60,6 @@ ion	it-is-good-you-returned-saftey-piot.wav	enter	enter	it is good you returned 
 ion	pilot-mode-online.wav	enter	enter	pilot mode online	filename
 ion	transfering-controls-to-manual-operation.wav	enter	enter	transfering controls to manual operation	filename
 ion	trasnfering-controls-to-pilot.wav	enter	enter	trasnfering controls to pilot	filename
-ion	asfa.wav	misc	damage	severe damage	stt
 ion	enemy-pilot-attacking.wav	warn	warn	enemy pilot attacking	filename
 ion	warning-2-enemy-pilot-attacking.wav	warn	warn	warning 2 enemy pilot attacking	filename
 ion	warning-2.wav	warn	warn	warning 2	filename

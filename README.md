@@ -54,6 +54,21 @@ Hooks speak dev-words; config aliases map them to Titan voice-line **buckets**:
 
 Raw buckets are also playable directly: `down core damage eject warn enter follow attack guard exit misc`.
 
+### Groups — one event, several buckets
+
+A **group** is a named set of buckets. Point an event at a group and each fire draws from any member,
+so a frequent event stops sounding like a broken record:
+
+```sh
+titancall group set combat attack,down,warn   # or space-separated
+titancall alias working combat                # TaskCreated now pulls from all three
+titancall group list                          # combat  attack,down,warn
+titancall group rm combat
+```
+
+Members are narrowed per-voice at play time: a Titan with no `warn/` folder simply never draws `warn`
+from the group instead of falling back to `misc`.
+
 **Confirmation chirps** — some commands play an immediate sound (bypassing cooldown, respecting mute):
 `titan here <name>` / `titan <name>` greet you in that voice; `output <device>` chirps **on the new device**
 so you confirm routing; `volume <n>` plays at the new level; `on` proves sound is back.
@@ -101,6 +116,38 @@ would stampede the same voice. `titancall` enforces a per-voice minimum gap (def
 window, extra fires return silently. Distinct titans can still overlap. Tune with `titancall cooldown <secs>`
 (0 = off). State lives in `~/.local/share/titancall/state/<titan>.last`.
 
+## The console — `titancall ui`
+
+A curses cockpit for the whole chain: **wav → bucket → group → event → hook**. It is the only part
+that needs `python3`; playing sounds stays pure bash, so a box without python still gets notifications.
+
+```
+ titancall console  1 browse  2 events  3 groups  4 hooks       ion (via dotfile) | vol 0.7 | live
+-------------------------------------------------------------------------------------------------
+TITAN         BUCKET          WAV  [ion/attack]
+bt         32 * all      36     engaging titan
+ion        36 attack      5   * splinter rifle on target
+jarvis     61 core        2     targeting
+legion     52 damage     13     weapons energized
+monarch    36 down        3
+attack <- events: working
+ tab pane  enter/p play  space mark  m move  x clear  / filter  r reload  1-4 screens  q quit
+```
+
+| screen | does |
+|--------|------|
+| **1 browse** | three panes (titan / bucket / wav). `enter` or `p` auditions a clip, `space` marks, `m` moves marked wavs to another bucket, `/` filters by transcript, `* all` lists every wav of a Titan at once |
+| **2 events** | the alias layer: `enter` retargets an event at any bucket **or group**, `n` adds one, `d` removes, `p` fires it through the CLI. The `WAVS` column is how many clips this project's Titan can actually draw — `0` means that event is effectively silent for this voice |
+| **3 groups** | `n` creates a group, `enter` toggles member buckets, `d` deletes, `p` previews. `USED BY` shows which events depend on it |
+| **4 hooks** | read-only chain `Claude hook → event → target → wavs`, plus whether each hook is really wired in `~/.claude/settings.json`. `enter` retargets the *event* — hook wiring itself stays with `./install-hooks.sh` |
+
+`q` quits; `esc` only backs out of an overlay or filter. Auditioning a clip plays even when muted
+(you asked for it explicitly) — the header still shows `MUTED`.
+
+**Moves are reviewable.** Reassigning a wav appends a row to the git-tracked `data/overrides.tsv`
+and re-runs `build_manifest.py --apply`, which physically moves the file and regenerates
+`data/buckets.tsv`. Nothing is hidden in a database: `git diff data/` shows exactly what you re-bucketed.
+
 ## Playback log
 
 Every played line is appended to `~/.local/share/titancall/log` (tab-separated:
@@ -130,13 +177,18 @@ long-build-command; titancall done   # speak when a long command finishes
 ```
 titancall <event>            play event for this project's Titan
 titancall random <event>     play from a random Titan
+titancall ui                 curses console: wavs -> buckets -> groups -> events (needs python3)
 titancall whoami | roster
 titancall titan list | here <name> | <name>
 titancall output list | <device> | default
 titancall volume [0..1]
 titancall lines [event]
+titancall alias [<event> <bucket|group>]
+titancall group list | show <n> | set <n> <b1,b2,...> | rm <n>
+titancall buckets            bucket names, one per line
 titancall normalize          re-bucket + rename installed wavs
 titancall config | test [event]
+titancall config unset <alias.x|group.x|volume.x|cooldown.x>
 titancall log [n] | on | off | clear
 
 ```

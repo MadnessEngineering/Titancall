@@ -39,6 +39,7 @@ ion	splinter-rifle-on-target	attack
 ion	firing-laser-core	core
 ion	laser-core-ready	core
 ion	advice-defensive-system	damage
+ion	asfa	damage
 ion	critical-damage-sustained-advise-defensive-system	damage
 ion	critical-damage-sustained	damage
 ion	critical-damage-utlize-tripwire	damage
@@ -59,7 +60,6 @@ ion	it-is-good-you-returned-saftey-piot	enter
 ion	pilot-mode-online	enter
 ion	transfering-controls-to-manual-operation	enter
 ion	trasnfering-controls-to-pilot	enter
-ion	asfa	damage
 ion	enemy-pilot-attacking	warn
 ion	warning-2-enemy-pilot-attacking	warn
 ion	warning-2	warn

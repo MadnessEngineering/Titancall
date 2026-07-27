@@ -4,10 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-`titancall` — a single-file bash CLI (`bin/titancall`, ~425 lines) that plays Titanfall 2 Titan
+`titancall` — a single-file bash CLI (`bin/titancall`, ~500 lines) that plays Titanfall 2 Titan
 voice lines as notifications. Every project/hook that pipes into it gets its own Titan voice.
 No build, no deps beyond macOS `afplay` (+ optional `SwitchAudioSource` for device routing,
-`ffmpeg` only for `level`). **All logic lives in `bin/titancall`** — edit there.
+`ffmpeg` only for `level`). **All playback logic lives in `bin/titancall`** — edit there.
+
+`python3` is required only by the maintenance/UI edges — `install-hooks.sh` (JSON merge),
+`scripts/build_manifest.py`, and `scripts/titancall_ui.py` (`titancall ui`). Keep it that way:
+firing a notification must never need python.
 
 ## Commands
 
@@ -23,6 +27,19 @@ There is no test suite. To exercise a change: run the subcommand with `TITANCALL
 blocks (default playback is detached — the process returns before the sound plays, so a bare test
 call tells you nothing). `bash -n bin/titancall` for syntax.
 
+**Testing the curses UI headlessly.** Drive it in tmux and screenshot the pane — a hand-rolled pty
+harness will lie to you (unmapped keys, wrong erase semantics):
+
+```sh
+tmux new-session -d -s ui -x 120 -y 34 "cd $PWD && python3 scripts/titancall_ui.py; sleep 30"
+sleep 1.5; tmux send-keys -t ui 2; sleep 0.4      # key names: Down Tab Enter Space ...
+tmux capture-pane -p -t ui; tmux kill-session -t ui
+```
+
+For anything that *writes* (moves, groups, aliases), point it at a throwaway library first —
+`TITANCALL_HOME=/tmp/sbox/home XDG_CONFIG_HOME=/tmp/sbox/config` plus a copy of the repo, since
+`--apply` moves real wavs and rewrites the tracked `data/*.tsv`.
+
 ## Runtime state (all outside the repo)
 
 - `~/.config/titancall/config` — `key=value` lines; seeded from `DEFAULT_CONFIG` on first run.
@@ -37,6 +54,12 @@ call tells you nothing). `bash -n bin/titancall` for syntax.
 `alias.<event>=<bucket>` maps each to a *bucket* (titan-words: `down damage enter`). Buckets are the
 actual `<titan>/<bucket>/` sound folders. `resolve_bucket` does event→bucket; an event with no alias
 falls through as its own name, so raw buckets play directly.
+
+**Groups are named bucket sets** (`group.<name>=b1,b2,...`), the third alias target. `resolve_bucket
+<event> [titan]` expands a group to ONE random member, and when given a titan it first narrows members
+to those that actually hold wavs for that voice — otherwise a titan lacking `warn/` would silently
+fall through to `misc`. Every caller (`cmd_play`, `confirm`, `cmd_random`, `cmd_lines`) passes the
+titan. `target_names` = buckets + groups, and is what `cmd_alias` validates against.
 
 **Bucketing is manifest-first, keyword-fallback.** The wav filenames *are* the transcripts (named
 by ear, typos preserved as ground truth). `scripts/build_manifest.py` holds an `OVERRIDES` map of
@@ -70,7 +93,20 @@ firing N times in a workflow from stampeding one voice. `confirm` chirps (device
 changes) deliberately bypass cooldown but still respect the `enabled` mute gate.
 
 **Config keys** are gated by `key_ok`: known scalars (`CONFIG_KEYS`) plus `alias.*`, `volume.*`,
-`cooldown.*` namespaces. `cfg`/`cfg_set` are grep/sed over the flat file.
+`cooldown.*`, `group.*` namespaces. `cfg`/`cfg_set`/`cfg_unset` are grep/sed over the flat file.
+`config unset` only accepts the namespaced keys — scalars have defaults worth keeping.
+
+**The console (`titancall ui`) writes through the CLI, never around it.** `scripts/titancall_ui.py`
+is a curses front-end over four layers; every mutation shells back out to bash so validation lives in
+one place: `titancall alias`, `titancall group set/rm`, `titancall config unset`. It reads
+`titancall buckets` / `whoami` for candidates, and previews clips via `titancall playfile <wav>`
+(honors device + volume, deliberately bypasses the mute gate and cooldown — the user asked for that
+exact clip). Wav→bucket moves are the one file-touching path: the UI appends to the tracked
+`data/overrides.tsv` and re-runs `build_manifest.py --apply`. `overrides.tsv` is merged *over* the
+curated `OVERRIDES` dict, so the console never has to rewrite python source and a UI move always wins.
+Hook→event mapping stays read-only (it lives in `~/.claude/settings.json`); the UI parses
+`install-hooks.sh`'s `EVENTS` map for the recommended set and settings.json for what's actually wired,
+then offers to retarget the *event* instead.
 
 **Shell completion is data-driven.** `bin/titancall __complete <context-words>` is a hidden verb
 that emits newline candidates for the slot after the given words (reusing `list_titans`,
@@ -86,3 +122,13 @@ and `completions/_titancall` (zsh) call it, so completions never hardcode titans
 - Registry/config writes go through temp-file + `mv` (atomic); preserve that pattern.
 - Hooks always call titancall even when muted — the `enabled=0` gate returns early inside
   `cmd_play`/`confirm`, it does not remove the hook.
+- **Never `producer | grep -q`** under `set -o pipefail`: `grep -q` exits on the first match and
+  SIGPIPEs the producer, so the pipeline reports failure *even though the match succeeded* (this bit
+  `cmd_alias` the moment its candidate list grew a second, slower producer). Use `list_has <needle>
+  "$(producer)"` — herestring, no pipe.
+- Feeding `while read` from `printf '%s' "$x" | tr ...` silently drops the last field (no trailing
+  newline → final `read` returns non-zero). Use `printf '%s\n'`.
+- A command whose last statement is a `grep` test returns that grep's rc. Wrap advisory greps in
+  `if ...; then err ...; fi` so "nothing found" isn't reported as failure.
+- In the curses UI, `esc` never quits (`q` does): an unmapped escape sequence arrives as a bare 27,
+  and its tail is drained via `nodelay` so leftovers like `[1~` can't fire as commands.

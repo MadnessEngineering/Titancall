@@ -64,6 +64,11 @@ cfg_set() {
   else cp "$CONFIG" "$tmp" && printf '%s=%s\n' "$k" "$v" >> "$tmp" && mv "$tmp" "$CONFIG"; fi
 }
 
+cfg_unset() { # drop a key entirely (atomic like cfg_set); no-op when absent
+  local k="$1" tmp; [ -f "$CONFIG" ] || return 0; tmp="$CONFIG.tmp.$$"
+  { grep -vE "^${k}=" "$CONFIG" || true; } > "$tmp" && mv "$tmp" "$CONFIG"
+}
+
 slugify() { echo "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/\.wav$//; s/[^a-z0-9]+/-/g; s/^-+//; s/-+$//; s/-+/-/g'; }
 
 manifest_bucket() { # titan slug -> curated bucket from data/buckets.tsv, or nothing
@@ -175,7 +180,26 @@ _play_seq() { # f vol output  — switch device if set, play, restore. Blocks (c
   fi
 }
 
-resolve_bucket() { local ev="$1" a; a=$(cfg "alias.$ev" ""); [ -n "$a" ] && printf '%s' "$a" || printf '%s' "$ev"; }
+group_buckets() { # name -> newline-separated members of group.<name>, or nothing (rc 1)
+  local g; g=$(cfg "group.$1" ""); [ -n "$g" ] || return 1
+  printf '%s' "$g" | tr ',' '\n' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//' | grep -v '^$'
+}
+
+resolve_bucket() { # event [titan] -> bucket
+  # alias.<event> may name a bucket OR a group.<name>; a group resolves to one random member.
+  # With a titan, group members are narrowed to those that actually hold wavs for that voice.
+  local ev="$1" titan="${2:-}" a target members=() live=() b
+  a=$(cfg "alias.$ev" ""); target="${a:-$ev}"
+  while IFS= read -r b; do members+=("$b"); done < <(group_buckets "$target")
+  [ ${#members[@]} -eq 0 ] && { printf '%s' "$target"; return; }
+  if [ -n "$titan" ]; then
+    for b in "${members[@]}"; do
+      [ -n "$(find "$SOUNDS/$titan/$b" -maxdepth 1 -iname '*.wav' -print -quit 2>/dev/null)" ] && live+=("$b")
+    done
+    [ ${#live[@]} -gt 0 ] && members=("${live[@]}")
+  fi
+  printf '%s' "${members[$(( RANDOM % ${#members[@]} ))]}"
+}
 pick_wav() {
   local titan="$1" bucket="$2" files=() pick f dir
   dir="$SOUNDS/$titan/$bucket"
@@ -203,7 +227,7 @@ cmd_play() {
   titan=$(active_titan)
   [ -d "$SOUNDS/$titan" ] || die "titan '$titan' has no voice folder (titancall titan list)"
   cooldown_ok "$titan" "$event" || return 0    # per-voice cooldown: collapse bursts (e.g. SubagentStop)
-  bucket=$(resolve_bucket "$event")
+  bucket=$(resolve_bucket "$event" "$titan")
   f=$(pick_wav "$titan" "$bucket") || die "no audio for '$event' (bucket '$bucket') in '$titan'"
   proot=$(project_root)
   reg_touch "$proot" 2>/dev/null
@@ -215,7 +239,7 @@ confirm() { # titan event — immediate confirmation chirp: respects mute, ignor
   [ "$(cfg enabled 1)" = "0" ] && return 0
   local titan="$1" event="$2" f
   [ -d "$SOUNDS/$titan" ] || return 0
-  f=$(pick_wav "$titan" "$(resolve_bucket "$event")") || return 0
+  f=$(pick_wav "$titan" "$(resolve_bucket "$event" "$titan")") || return 0
   ( play_file "$f" >/dev/null 2>&1 & )
 }
 
@@ -224,7 +248,7 @@ cmd_random() {
   while IFS= read -r t; do titans+=("$t"); done < <(list_titans)
   [ ${#titans[@]} -eq 0 ] && die "no titans installed"
   titan="${titans[$(( RANDOM % ${#titans[@]} ))]}"
-  bucket=$(resolve_bucket "$event")
+  bucket=$(resolve_bucket "$event" "$titan")
   f=$(pick_wav "$titan" "$bucket") || die "no audio for '$event' across titans"
   err "($titan)"
   log_play "random:$event" "$titan" "$bucket" "$f" "$(project_root)"
@@ -271,7 +295,7 @@ cmd_cooldown() { [ -n "${1:-}" ] && { cfg_set cooldown "$1"; echo "cooldown: ${1
 cmd_lines() {
   local titan; titan=$(active_titan)
   if [ -n "${1:-}" ]; then
-    local b; b=$(resolve_bucket "$1"); echo "[$titan/$b]"
+    local b; b=$(resolve_bucket "$1" "$titan"); echo "[$titan/$b]"
     find "$SOUNDS/$titan/$b" -maxdepth 1 -iname '*.wav' -exec basename {} \; 2>/dev/null | sort
   else
     echo "[$titan] buckets:"
@@ -284,10 +308,21 @@ cmd_lines() {
 
 bucket_names() { local rule; for rule in "${BUCKET_RULES[@]}"; do printf '%s\n' "${rule%%|*}"; done; echo misc; }
 
+group_names() { grep -E '^group\.' "$CONFIG" 2>/dev/null | sed -E 's/^group\.([^=]+)=.*/\1/' | sort; }
+target_names() { bucket_names; group_names; }   # everything an alias may point at
+
+list_has() { # needle newline-list -> 0 if an exact line matches
+  # No `| grep -q`: grep exits on first match, SIGPIPEs the producer, and pipefail then
+  # reports the whole pipeline as failed even though the match succeeded.
+  local needle="$1" line
+  while IFS= read -r line; do [ "$line" = "$needle" ] && return 0; done <<< "$2"
+  return 1
+}
+
 CONFIG_KEYS="enabled titan output volume cooldown loudness claim log"
-key_ok() { # 0 if key is a known scalar, alias.*, or per-event volume./cooldown. override
+key_ok() { # 0 if key is a known scalar, alias.*, group.*, or per-event volume./cooldown. override
   case "$1" in
-    alias.*|volume.*|cooldown.*) return 0 ;;
+    alias.*|volume.*|cooldown.*|group.*) return 0 ;;
     *) case " $CONFIG_KEYS " in *" $1 "*) return 0 ;; *) return 1 ;; esac ;;
   esac
 }
@@ -299,22 +334,64 @@ cmd_config() {
     get) [ -n "$key" ] || die "usage: titancall config get <key>"; cfg "$key"; echo ;;
     set)
       [ -n "$key" ] && [ $# -ge 3 ] || die "usage: titancall config set <key> <val>"
-      key_ok "$key" || die "unknown key '$key' (valid: $CONFIG_KEYS, alias.*, volume.*, cooldown.*)"
+      key_ok "$key" || die "unknown key '$key' (valid: $CONFIG_KEYS, alias.*, volume.*, cooldown.*, group.*)"
       cfg_set "$key" "$3"; echo "$key=$3" ;;
-    *)   die "usage: titancall config [get <k> | set <k> <v>]" ;;
+    unset)
+      [ -n "$key" ] || die "usage: titancall config unset <key>"
+      case "$key" in
+        alias.*|volume.*|cooldown.*|group.*) ;;    # only namespaced keys: scalars have defaults to keep
+        *) die "refusing to unset '$key' — only alias.*, volume.*, cooldown.*, group.* can be removed" ;;
+      esac
+      cfg_unset "$key"; echo "unset $key" ;;
+    *)   die "usage: titancall config [get <k> | set <k> <v> | unset <k>]" ;;
   esac
 }
 
-cmd_alias() { # list alias.* mappings, or set alias.<event>=<bucket> (bucket must be known)
-  local event="${1:-}" bucket="${2:-}" buckets
-  buckets=$(bucket_names | paste -sd' ' -)
+cmd_alias() { # list alias.* mappings, or set alias.<event>=<bucket|group> (target must be known)
+  local event="${1:-}" target="${2:-}" targets
+  targets=$(target_names | paste -sd' ' -)
   if [ -z "$event" ]; then
     grep -E '^alias\.' "$CONFIG" 2>/dev/null | sed -E 's/^alias\.([^=]+)=(.*)/\1 -> \2/' | sort
     return 0
   fi
-  [ -n "$bucket" ] || die "usage: titancall alias <event> <bucket>   (buckets: $buckets)"
-  bucket_names | grep -qxF "$bucket" || die "unknown bucket '$bucket' (valid: $buckets)"
-  cfg_set "alias.$event" "$bucket"; echo "alias: $event -> $bucket"
+  [ -n "$target" ] || die "usage: titancall alias <event> <bucket|group>   (targets: $targets)"
+  list_has "$target" "$(target_names)" || die "unknown target '$target' (valid: $targets)"
+  cfg_set "alias.$event" "$target"; echo "alias: $event -> $target"
+}
+
+cmd_group() { # named bucket sets: an alias pointing at a group draws from any member bucket
+  ensure_config
+  local sub="${1:-list}" name="${2:-}" members b bad=()
+  case "$sub" in
+    list|"")
+      group_names | while IFS= read -r name; do
+        [ -n "$name" ] && printf '%-10s %s\n' "$name" "$(cfg "group.$name")"
+      done
+      group_names | grep -q . || echo "(no groups — titancall group set <name> <b1,b2,...>)" ;;
+    show)
+      [ -n "$name" ] || die "usage: titancall group show <name>"
+      group_buckets "$name" || die "no group '$name'" ;;
+    set)
+      [ -n "$name" ] && [ $# -ge 3 ] || die "usage: titancall group set <name> <bucket>[,<bucket>...]"
+      shift 2; members=$(printf '%s' "$*" | tr ' ' ',' | tr -s ',')      # accept commas or spaces
+      local known; known=$(bucket_names)
+      list_has "$name" "$known" && die "'$name' is a bucket name — pick another group name"
+      while IFS= read -r b; do
+        [ -z "$b" ] && continue
+        list_has "$b" "$known" || bad+=("$b")
+      done < <(printf '%s\n' "$members" | tr ',' '\n')   # trailing \n or `read` drops the last member
+      [ ${#bad[@]} -gt 0 ] && die "unknown bucket(s): ${bad[*]}  (valid: $(printf '%s' "$known" | paste -sd' ' -))"
+      cfg_set "group.$name" "$members"; echo "group: $name = $members" ;;
+    rm|delete)
+      [ -n "$name" ] || die "usage: titancall group rm <name>"
+      [ -n "$(cfg "group.$name")" ] || die "no group '$name'"
+      cfg_unset "group.$name"; echo "removed group: $name"
+      # no dangling aliases is the normal case — don't let grep's rc 1 fail the command
+      if grep -qE "^alias\.[^=]+=${name}\$" "$CONFIG"; then
+        err "note: aliases still point at '$name' (titancall alias)"
+      fi ;;
+    *) die "usage: titancall group [list | show <name> | set <name> <buckets> | rm <name>]" ;;
+  esac
 }
 
 cmd_normalize() {
@@ -373,33 +450,53 @@ cmd_status()  {
   echo "output: $(cfg output 'system default')   volume: $(cfg volume 0.7)"
 }
 
+cmd_buckets() { bucket_names; }     # machine-readable bucket list (UI + completions read this)
+
+cmd_playfile() { # playfile <wav> [event] — play one exact file: preview for `titancall ui`.
+  # Explicit user action, so it bypasses the mute gate and cooldown; honors output device + volume.
+  local f="${1:-}"; [ -n "$f" ] || die "usage: titancall playfile <wav> [event]"
+  [ -f "$f" ] || die "no such wav: $f"
+  play_file "$f" "${2:-}"
+}
+
+cmd_ui() { # curses console for wiring wavs -> buckets -> groups -> events (the only python3 path)
+  local ui="$REPO_DIR/scripts/titancall_ui.py"
+  [ -f "$ui" ] || die "missing $ui"
+  command -v python3 >/dev/null 2>&1 || die "titancall ui needs python3 (the rest of titancall does not)"
+  exec python3 "$ui" "$@"
+}
+
 # ---- shell completion (thin bash/zsh scripts call `titancall __complete`; candidates stay live) ----
-SUBCOMMANDS="play random whoami roster titan output volume cooldown lines normalize level config alias test log on off toggle status help"
+SUBCOMMANDS="play random whoami roster titan output volume cooldown lines normalize level config alias group buckets test log ui on off toggle status help"
 events()       { grep -E '^alias\.' "$CONFIG" 2>/dev/null | sed -E 's/^alias\.([^=]+)=.*/\1/'; }
 device_names() { have_switch && SwitchAudioSource -a -t output 2>/dev/null; }
 
 cmd_complete() { # args = completed words before the cursor; emit newline candidates for that slot
   local n=$# sub="${1:-}"
   if [ "$n" -le 0 ]; then                        # bare `titancall <TAB>`: commands + playables
-    printf '%s\n' $SUBCOMMANDS; events; bucket_names; return
+    printf '%s\n' $SUBCOMMANDS; events; target_names; return
   fi
   case "$sub" in
     titan)
       if [ "$n" -eq 1 ]; then printf 'list\nhere\nshow\n'; list_titans
       elif [ "$2" = here ] && [ "$n" -eq 2 ]; then list_titans; fi ;;
     play|test|random|lines)
-      [ "$n" -eq 1 ] && { events; bucket_names; } ;;
+      [ "$n" -eq 1 ] && { events; target_names; } ;;
     output)
       [ "$n" -eq 1 ] && { printf 'list\ndefault\n'; device_names; } ;;
     config)
-      if [ "$n" -eq 1 ]; then printf 'get\nset\n'
-      elif { [ "$2" = get ] || [ "$2" = set ]; } && [ "$n" -eq 2 ]; then
+      if [ "$n" -eq 1 ]; then printf 'get\nset\nunset\n'
+      elif { [ "$2" = get ] || [ "$2" = set ] || [ "$2" = unset ]; } && [ "$n" -eq 2 ]; then
         printf '%s\n' $CONFIG_KEYS
         local e; for e in $(events); do printf 'alias.%s\nvolume.%s\ncooldown.%s\n' "$e" "$e" "$e"; done
       fi ;;
     alias)
       if [ "$n" -eq 1 ]; then events
-      elif [ "$n" -eq 2 ]; then bucket_names; fi ;;
+      elif [ "$n" -eq 2 ]; then target_names; fi ;;
+    group)
+      if [ "$n" -eq 1 ]; then printf 'list\nshow\nset\nrm\n'
+      elif { [ "$2" = show ] || [ "$2" = rm ]; } && [ "$n" -eq 2 ]; then group_names
+      elif [ "$2" = set ] && [ "$n" -ge 3 ]; then bucket_names; fi ;;
     log)
       [ "$n" -eq 1 ] && printf 'on\noff\nclear\n' ;;
     *) : ;;                                       # volume/cooldown freeform; on/off/etc. terminal
@@ -424,11 +521,15 @@ titancall — TF2 Titan voice notifications, one voice per project
   titancall output list|NAME|default
   titancall volume [0..1]
   titancall cooldown [secs]    per-voice min gap; collapses bursts (0 = off). default 4
-  titancall alias [<event> <bucket>]  list or remap event->bucket
+  titancall alias [<event> <bucket|group>]  list or remap event->bucket/group
+  titancall group [list | show <n> | set <n> <b1,b2,...> | rm <n>]
+                               named bucket sets; an alias on a group draws from any member
+  titancall buckets            list bucket names (machine-readable)
+  titancall ui                 curses console: wire wavs -> buckets -> groups -> events (needs python3)
   titancall lines [event]
   titancall normalize          bucket+rename installed wavs into <titan>/<event>/
   titancall level              loudness-normalize all wavs to config 'loudness' LUFS (one-time, needs ffmpeg)
-  titancall config [get <k> | set <k> <v>] | test [event]
+  titancall config [get <k> | set <k> <v> | unset <k>] | test [event]
   titancall log [n]            show last n played (default 20): when/event/titan/bucket/wav/project
   titancall log on|off|clear   toggle playback logging (config 'log') or wipe the log file
 
@@ -459,6 +560,10 @@ main() {
     level)      cmd_level "$@" ;;
     config)     cmd_config "$@" ;;
     alias)      cmd_alias "$@" ;;
+    group)      cmd_group "$@" ;;
+    buckets)    cmd_buckets ;;
+    playfile)   cmd_playfile "$@" ;;
+    ui)         cmd_ui "$@" ;;
     test)       cmd_test "$@" ;;
     log)        cmd_log "$@" ;;
     on|enable)  cmd_enable ;;
