@@ -23,6 +23,12 @@ brew install switchaudio-osx  # only needed to route to a non-default output dev
 is a safe no-op. Pass a path to target a different settings file: `./install-hooks.sh ./.claude/settings.json`.
 Mute without touching hooks: `titancall off` (re-enable with `titancall on`).
 
+**Shell completion** — `install.sh` also wires up tab-completion for bash & zsh (symlinks into a
+writable completions dir, or prints the line to add — never edits your rc file). Completions are
+*live*: `titan <TAB>` lists installed Titans, `output <TAB>` lists your audio devices, `<TAB>` /
+`play <TAB>` lists events + buckets, `alias <event> <TAB>` lists buckets — all driven by a hidden
+`titancall __complete` verb, so they stay in sync as titans/devices/aliases change. New shell to load.
+
 Voice library lives outside the repo (it's ~400M of `.wav`) at
 `~/.local/share/titancall/sounds/<titan>/<event>/`. Drop new lines there and run `titancall normalize`.
 

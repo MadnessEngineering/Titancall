@@ -1,0 +1,8 @@
+#compdef titancall
+# zsh completion for titancall — delegates to `titancall __complete` so candidates
+# (titans, devices, aliases, buckets) stay live. Put this on $fpath as `_titancall`
+# and run compinit. install.sh wires it up automatically.
+local -a ctx cands
+ctx=(${words[2,CURRENT-1]})                       # words between `titancall` and the cursor
+cands=(${(f)"$(titancall __complete "${ctx[@]}" 2>/dev/null)"})   # (f) split on newlines, keep spaces
+compadd -- $cands

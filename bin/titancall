@@ -373,6 +373,39 @@ cmd_status()  {
   echo "output: $(cfg output 'system default')   volume: $(cfg volume 0.7)"
 }
 
+# ---- shell completion (thin bash/zsh scripts call `titancall __complete`; candidates stay live) ----
+SUBCOMMANDS="play random whoami roster titan output volume cooldown lines normalize level config alias test log on off toggle status help"
+events()       { grep -E '^alias\.' "$CONFIG" 2>/dev/null | sed -E 's/^alias\.([^=]+)=.*/\1/'; }
+device_names() { have_switch && SwitchAudioSource -a -t output 2>/dev/null; }
+
+cmd_complete() { # args = completed words before the cursor; emit newline candidates for that slot
+  local n=$# sub="${1:-}"
+  if [ "$n" -le 0 ]; then                        # bare `titancall <TAB>`: commands + playables
+    printf '%s\n' $SUBCOMMANDS; events; bucket_names; return
+  fi
+  case "$sub" in
+    titan)
+      if [ "$n" -eq 1 ]; then printf 'list\nhere\nshow\n'; list_titans
+      elif [ "$2" = here ] && [ "$n" -eq 2 ]; then list_titans; fi ;;
+    play|test|random|lines)
+      [ "$n" -eq 1 ] && { events; bucket_names; } ;;
+    output)
+      [ "$n" -eq 1 ] && { printf 'list\ndefault\n'; device_names; } ;;
+    config)
+      if [ "$n" -eq 1 ]; then printf 'get\nset\n'
+      elif { [ "$2" = get ] || [ "$2" = set ]; } && [ "$n" -eq 2 ]; then
+        printf '%s\n' $CONFIG_KEYS
+        local e; for e in $(events); do printf 'alias.%s\nvolume.%s\ncooldown.%s\n' "$e" "$e" "$e"; done
+      fi ;;
+    alias)
+      if [ "$n" -eq 1 ]; then events
+      elif [ "$n" -eq 2 ]; then bucket_names; fi ;;
+    log)
+      [ "$n" -eq 1 ] && printf 'on\noff\nclear\n' ;;
+    *) : ;;                                       # volume/cooldown freeform; on/off/etc. terminal
+  esac
+}
+
 usage() {
   cat <<EOF
 titancall — TF2 Titan voice notifications, one voice per project
@@ -432,6 +465,7 @@ main() {
     off|disable|mute) cmd_disable ;;
     toggle)     cmd_toggle ;;
     status)     cmd_status ;;
+    __complete) cmd_complete "$@" ;;
     *)          cmd_play "$cmd" "$@" ;;
   esac
 }

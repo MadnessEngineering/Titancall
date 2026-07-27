@@ -72,6 +72,12 @@ changes) deliberately bypass cooldown but still respect the `enabled` mute gate.
 **Config keys** are gated by `key_ok`: known scalars (`CONFIG_KEYS`) plus `alias.*`, `volume.*`,
 `cooldown.*` namespaces. `cfg`/`cfg_set` are grep/sed over the flat file.
 
+**Shell completion is data-driven.** `bin/titancall __complete <context-words>` is a hidden verb
+that emits newline candidates for the slot after the given words (reusing `list_titans`,
+`device_names`, `events` = config `alias.*` keys, `bucket_names`). The thin `completions/titancall.bash`
+and `completions/_titancall` (zsh) call it, so completions never hardcode titans/devices/aliases.
+`install.sh` symlinks them into a writable completions dir or prints an rc hint — it never edits rc files.
+
 ## Conventions
 
 - Pure bash, `set -uo pipefail`. Small `cmd_*` functions dispatched by `main`'s case; unknown first
