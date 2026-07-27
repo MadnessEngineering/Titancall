@@ -464,9 +464,10 @@ cmd_review() { # review [apply] — dump the whole library to an editable CSV, t
   [ -f "$mf" ] || die "missing $mf"
   command -v python3 >/dev/null 2>&1 || die "titancall review needs python3 (playback does not)"
   case "${1:-}" in
-    ""|export|show) python3 "$mf" --review ;;
+    ""|export|show) python3 "$mf" --review ;;          # refuses to clobber unapplied edits
+    -f|--force)     python3 "$mf" --review --force ;;  # discard them deliberately
     apply|import)   python3 "$mf" --import-review ;;
-    *) die "usage: titancall review [apply]" ;;
+    *) die "usage: titancall review [apply | --force]" ;;
   esac
 }
 
@@ -509,7 +510,7 @@ cmd_complete() { # args = completed words before the cursor; emit newline candid
       elif { [ "$2" = show ] || [ "$2" = rm ]; } && [ "$n" -eq 2 ]; then group_names
       elif [ "$2" = set ] && [ "$n" -ge 3 ]; then bucket_names; fi ;;
     review)
-      [ "$n" -eq 1 ] && printf 'apply\n' ;;
+      [ "$n" -eq 1 ] && printf 'apply\n--force\n' ;;
     log)
       [ "$n" -eq 1 ] && printf 'on\noff\nclear\n' ;;
     *) : ;;                                       # volume/cooldown freeform; on/off/etc. terminal

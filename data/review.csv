@@ -5,32 +5,32 @@ bt,targeting 1,attack,attack,targeting-1.wav
 bt,targeting 2,attack,attack,targeting-2.wav
 bt,targeting 3,attack,attack,targeting-3.wav
 bt,got you,down,down,got-you.wav
-bt,are you sure about this there is a 58 percent chance of sucess,misc,misc,are-you-sure-about-this-there-is-a-58-percent-chance-of-sucess.wav
-bt,dismembernent may also occur,misc,misc,dismembernent-may-also-occur.wav
-bt,full throw with other deaths,misc,misc,full-throw-with-other-deaths.wav
-bt,full throw,misc,misc,full-throw.wav
-bt,good throw your welcome pilot,misc,misc,good-throw-your-welcome-pilot.wav
-bt,goodluck,misc,misc,goodluck.wav
-bt,i can throw you across the gap,misc,misc,i-can-throw-you-across-the-gap.wav
-bt,listen up we cant take you directly to the bridge,misc,misc,listen-up-we-cant-take-you-directly-to-the-bridge.wav
+bt,are you sure about this there is a 58 percent chance of sucess,misc,warn,are-you-sure-about-this-there-is-a-58-percent-chance-of-sucess.wav
+bt,dismembernent may also occur,misc,warn,dismembernent-may-also-occur.wav
+bt,full throw with other deaths,misc,attack,full-throw-with-other-deaths.wav
+bt,full throw,misc,attack,full-throw.wav
+bt,good throw your welcome pilot,misc,follow,good-throw-your-welcome-pilot.wav
+bt,goodluck,misc,exit,goodluck.wav
+bt,i can throw you across the gap,misc,attack,i-can-throw-you-across-the-gap.wav
+bt,listen up we cant take you directly to the bridge,misc,enter,listen-up-we-cant-take-you-directly-to-the-bridge.wav
 bt,(dramatic music / mech SFX),misc,misc,mechsounds1.wav
 bt,(dramatic music / mech SFX),misc,misc,mechsounds2.wav
 bt,(dramatic music / mech SFX),misc,misc,mechsounds3.wav
 bt,(dramatic music / mech SFX),misc,misc,mechsounds4.wav
-bt,my analis concludes our only option is a throw i can throw you across the gap,misc,misc,my-analis-concludes-our-only-option-is-a-throw-i-can-throw-you-across-the-gap.wav
-bt,my analis concludes our only option is a throw,misc,misc,my-analis-concludes-our-only-option-is-a-throw.wav
+bt,my analis concludes our only option is a throw i can throw you across the gap,misc,attack,my-analis-concludes-our-only-option-is-a-throw-i-can-throw-you-across-the-gap.wav
+bt,my analis concludes our only option is a throw,misc,attack,my-analis-concludes-our-only-option-is-a-throw.wav
 bt,projectial mass 80 kilohtsmd,misc,misc,projectial-mass-80-kilohtsmd.wav
-bt,resulting in catostrophic trama,misc,misc,resulting-in-catostrophic-trama.wav
+bt,resulting in catostrophic trama,misc,damage,resulting-in-catostrophic-trama.wav
 bt,there are significantly more variables to throwing between 2 moving platforms,misc,misc,there-are-significantly-more-variables-to-throwing-between-2-moving-platforms.wav
 bt,there are significantly more variables,misc,misc,there-are-significantly-more-variables.wav
-bt,there is a 32 percent chance of a incomplete transversal resulting in,misc,misc,there-is-a-32-percent-chance-of-a-incomplete-transversal-resulting-in.wav
-bt,there is a 32 percent chance of a incomplete transversal,misc,misc,there-is-a-32-percent-chance-of-a-incomplete-transversal.wav
-bt,there is a 58 percent chance of sucess,misc,misc,there-is-a-58-percent-chance-of-sucess.wav
+bt,there is a 32 percent chance of a incomplete transversal resulting in,misc,warn,there-is-a-32-percent-chance-of-a-incomplete-transversal-resulting-in.wav
+bt,there is a 32 percent chance of a incomplete transversal,misc,warn,there-is-a-32-percent-chance-of-a-incomplete-transversal.wav
+bt,there is a 58 percent chance of sucess,misc,core,there-is-a-58-percent-chance-of-sucess.wav
 bt,there is also the chance of,misc,misc,there-is-also-the-chance-of.wav
-bt,there is also the possiblity of eetorcution and dissinengration,misc,misc,there-is-also-the-possiblity-of-eetorcution-and-dissinengration.wav
-bt,well neverget past those guns,misc,misc,well-neverget-past-those-guns.wav
-bt,what about the other 32 percent incomplete trans,misc,misc,what-about-the-other-32-percent-incomplete-trans.wav
-bt,what about the other 32 percent,misc,misc,what-about-the-other-32-percent.wav
+bt,there is also the possiblity of eetorcution and dissinengration,misc,damage,there-is-also-the-possiblity-of-eetorcution-and-dissinengration.wav
+bt,well neverget past those guns,misc,warn,well-neverget-past-those-guns.wav
+bt,what about the other 32 percent incomplete trans,misc,warn,what-about-the-other-32-percent-incomplete-trans.wav
+bt,what about the other 32 percent,misc,warn,what-about-the-other-32-percent.wav
 ion,engaging titan powering up primary wepond systems,attack,attack,engaging-titan-powering-up-primary-wepond-systems.wav
 ion,engaging titan,attack,attack,engaging-titan.wav
 ion,hostile pilot deteted splinter rifle on target,attack,attack,hostile-pilot-deteted-splinter-rifle-on-target.wav
@@ -92,23 +92,23 @@ jarvis,autoejecting,eject,eject,autoejecting.wav
 jarvis,eject override,eject,eject,eject-override.wav
 jarvis,forcing pilot eject,eject,eject,forcing-pilot-eject.wav
 jarvis,i am detectig a friendly pilot onboard,enter,enter,i-am-detectig-a-friendly-pilot-onboard.wav
-jarvis,a friendly titan is attacking your target,misc,misc,a-friendly-titan-is-attacking-your-target.wav
-jarvis,a pilot is attackig your target,misc,misc,a-pilot-is-attackig-your-target.wav
+jarvis,a friendly titan is attacking your target,misc,follow,a-friendly-titan-is-attacking-your-target.wav
+jarvis,a pilot is attackig your target,misc,follow,a-pilot-is-attackig-your-target.wav
 jarvis,cluster missile flight stablizers improved,misc,misc,cluster-missile-flight-stablizers-improved.wav
 jarvis,dash capacity increased,misc,misc,dash-capacity-increased.wav
 jarvis,electric smoke duration extended,misc,misc,electicsmokedur.wav
 jarvis,explosive titan punch active,misc,misc,explosive-titan-punch-active.wav
-jarvis,friendly pilot has detached from your titan,misc,misc,friendly-pilot-has-detached-from-your-titan.wav
-jarvis,friendly pilot has left your titan,misc,misc,friendly-pilot-has-left-your-titan.wav
-jarvis,friendly pilot is clear of your titan,misc,misc,friendly-pilot-is-clear-of-your-titan.wav
-jarvis,friendly pilot is now clear of your titan,misc,misc,friendly-pilot-is-now-clear-of-your-titan.wav
-jarvis,friendly pilot on board,misc,misc,friendly-pilot-on-board.wav
-jarvis,friendly pilot on your titan,misc,misc,friendly-pilot-on-your-titan.wav
-jarvis,friendly pilot riding on board,misc,misc,friendly-pilot-riding-on-board.wav
-jarvis,have a nice day,misc,misc,have-a-nice-day.wav
+jarvis,friendly pilot has detached from your titan,misc,exit,friendly-pilot-has-detached-from-your-titan.wav
+jarvis,friendly pilot has left your titan,misc,exit,friendly-pilot-has-left-your-titan.wav
+jarvis,friendly pilot is clear of your titan,misc,exit,friendly-pilot-is-clear-of-your-titan.wav
+jarvis,friendly pilot is now clear of your titan,misc,exit,friendly-pilot-is-now-clear-of-your-titan.wav
+jarvis,friendly pilot on board,misc,enter,friendly-pilot-on-board.wav
+jarvis,friendly pilot on your titan,misc,enter,friendly-pilot-on-your-titan.wav
+jarvis,friendly pilot riding on board,misc,enter,friendly-pilot-riding-on-board.wav
+jarvis,have a nice day,misc,exit,have-a-nice-day.wav
 jarvis,quad rocket missle speed increased,misc,misc,quad-rocket-missle-speed-increased.wav
-jarvis,recommend maintaining a safe distance from allies,misc,misc,recommend-maintaining-a-safe-distance-from-allies.wav
-jarvis,recommend regen,misc,misc,recommend-regen.wav
+jarvis,recommend maintaining a safe distance from allies,misc,warn,recommend-maintaining-a-safe-distance-from-allies.wav
+jarvis,recommend regen,misc,damage,recommend-regen.wav
 jarvis,rocket salvo payload increased,misc,misc,rocket-salvo-payload-increased.wav
 jarvis,titan burn card enabled,misc,misc,titan-burn-card-enabled.wav
 jarvis,x016 chaingun damage increased against sheilds,misc,misc,x016-chaingun-damage-increased-against-sheilds.wav
@@ -130,8 +130,8 @@ jarvis,warning you have sustained high damage,warn,warn,warning-you-have-sustain
 jarvis,warning,warn,warn,warning.wav
 legion,advise aggressive sustained counterfire,attack,attack,advise-aggressive-sustained-counterfire.wav
 legion,conentrate fire on the weakest target,attack,attack,conentrate-fire-on-the-weakest-target.wav
-legion,manual targeting restroed,attack,attack,manual-targeting-restroed.wav
-legion,multiple titans are engaging you,attack,attack,multiple-titans-are-engaging-you.wav
+legion,manual targeting restroed,attack,enter,manual-targeting-restroed.wav
+legion,multiple titans are engaging you,attack,warn,multiple-titans-are-engaging-you.wav
 legion,scanning for enemy hostiles,attack,attack,scanning-for-enemy-hostiles.wav
 legion,smart core is ready,core,core,smart-core-is-ready.wav
 legion,smart core offline,core,core,smart-core-offline.wav
@@ -162,9 +162,9 @@ legion,providing backup,follow,follow,providing-backup.wav
 legion,providing backup2,follow,follow,providing-backup2.wav
 legion,engaging gaurd mode,guard,guard,engaging-gaurd-mode.wav
 legion,gaurdmode activiated weponds hot,guard,guard,gaurdmode-activiated-weponds-hot.wav
-legion,friendly pilot has left the hull,misc,misc,friendly-pilot-has-left-the-hull.wav
-legion,friendly pilot on extiorer,misc,misc,friendly-pilot-on-extiorer.wav
-legion,pred cannon at your disposal,misc,misc,pred-cannon-at-your-disposal.wav
+legion,friendly pilot has left the hull,misc,exit,friendly-pilot-has-left-the-hull.wav
+legion,friendly pilot on extiorer,misc,enter,friendly-pilot-on-extiorer.wav
+legion,pred cannon at your disposal,misc,attack,pred-cannon-at-your-disposal.wav
 legion,outnumbered 2 to 1 ammo feeds nominal,warn,warn,outnumbered-2-to-1-ammo-feeds-nominal.wav
 legion,pilot we are outnumbered 2 to 1,warn,warn,pilot-we-are-outnumbered-2-to-1.wav
 legion,warning enemy pilot attacking,warn,warn,warning-enemy-pilot-attacking.wav
@@ -215,7 +215,7 @@ monarch,gaurdmodeactiveprotocal3,guard,guard,gaurdmodeactiveprotocal3.wav
 monarch,gaurdmodeactiviated,guard,guard,gaurdmodeactiviated.wav
 monarch,gaurdmodenoxo16,guard,guard,gaurdmodenoxo16.wav
 monarch,protocal3,guard,guard,protocal3.wav
-monarch,ugrade stage 1,misc,misc,ugrade-stage-1.wav
+monarch,ugrade stage 1,misc,core,ugrade-stage-1.wav
 northstar,plasma railgun charged,attack,attack,plasma-railgun-charged.wav
 northstar,flight core activated,core,core,flight-core-activated.wav
 northstar,flight core activated2,core,core,flight-core-activated2.wav
@@ -319,8 +319,8 @@ ronin,engaging gaurd mdoe,guard,guard,engaging-gaurd-mdoe.wav
 ronin,gaurd mode activited sensors scanning for enemy hostile,guard,guard,gaurd-mode-activited-sensors-scanning-for-enemy-hostile.wav
 ronin,gaurd mode activited weponds energized,guard,guard,gaurd-mode-activited-weponds-energized.wav
 ronin,gaurd mode activited,guard,guard,gaurd-mode-activited.wav
-ronin,keep your enemies close,misc,misc,keep-your-enemies-close.wav
-ronin,plan,misc,misc,plan.wav
+ronin,keep your enemies close,misc,core,keep-your-enemies-close.wav
+ronin,plan,misc,attack,plan.wav
 ronin,warning,warn,warn,warning.wav
 scorch,enemy titans engaging in force,attack,attack,enemy-titans-engaging-in-force.wav
 scorch,priming offensive thermal systems,attack,attack,priming-offensive-thermal-systems.wav
@@ -330,7 +330,7 @@ scorch,flame core is ready,core,core,flame-core-is-ready.wav
 scorch,flame core online,core,core,flame-core-online.wav
 scorch,flame croe is ready,core,core,flame-croe-is-ready.wav
 scorch,flamecore activated,core,core,flamecore-activated.wav
-scorch,warning core reactor overload near,core,core,warning-core-reactor-overload-near.wav
+scorch,warning core reactor overload near,core,warn,warning-core-reactor-overload-near.wav
 scorch,critical damage take cover,damage,damage,critical-damage-take-cover.wav
 scorch,enemy pilot eleminated,down,down,enemy-pilot-eleminated.wav
 scorch,enemy titan destroyed,down,down,enemy-titan-destroyed.wav
@@ -357,9 +357,9 @@ scorch,warning significiant damage sustatined,warn,warn,warning-significiant-dam
 scorch,warning there is a hostile pilot on the hull,warn,warn,warning-there-is-a-hostile-pilot-on-the-hull.wav
 scorch,you are outnumbered,warn,warn,you-are-outnumbered.wav
 tone,40mm armed,attack,attack,40mm-armed.wav
-tone,good targeting pilot its good to have you return,attack,attack,good-targeting-pilot-its-good-to-have-you-return.wav
+tone,good targeting pilot its good to have you return,attack,enter,good-targeting-pilot-its-good-to-have-you-return.wav
 tone,good targeting pilot,attack,attack,good-targeting-pilot.wav
-tone,my systems are yous paint as many targets as you can with the 40mm,attack,attack,my-systems-are-yous-paint-as-many-targets-as-you-can-with-the-40mm.wav
+tone,my systems are yous paint as many targets as you can with the 40mm,attack,enter,my-systems-are-yous-paint-as-many-targets-as-you-can-with-the-40mm.wav
 tone,paint as many targets as you can with the 40mm,attack,attack,paint-as-many-targets-as-you-can-with-the-40mm.wav
 tone,seak out target locks and track them,attack,attack,seak-out-target-locks-and-track-them.wav
 tone,tracking hostiles,attack,attack,tracking-hostiles.wav
@@ -419,8 +419,8 @@ tone,gaurd mode activiated tracking hostils,guard,guard,gaurd-mode-activiated-tr
 tone,gaurd mode activiated tracking hostils2,guard,guard,gaurd-mode-activiated-tracking-hostils2.wav
 tone,gaurd mode activiated,guard,guard,gaurd-mode-activiated.wav
 tone,gaurd mode activiated2,guard,guard,gaurd-mode-activiated2.wav
-tone,tatical option paritcal wall to assist evasion,misc,misc,tatical-option-paritcal-wall-to-assist-evasion.wav
-tone,tatical option partical wall,misc,misc,tatical-option-partical-wall.wav
+tone,tatical option paritcal wall to assist evasion,misc,damage,tatical-option-paritcal-wall-to-assist-evasion.wav
+tone,tatical option partical wall,misc,damage,tatical-option-partical-wall.wav
 tone,warning enemy pilot attacking,warn,warn,warning-enemy-pilot-attacking.wav
 tone,warning,warn,warn,warning.wav
 tone,warning2,warn,warn,warning2.wav

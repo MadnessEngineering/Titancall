@@ -179,9 +179,27 @@ BUCKETS = ["eject", "core", "down", "damage", "warn", "enter",
            "guard", "follow", "attack", "exit", "misc"]
 
 
-def export_review(rows):
+def pending_edits():
+    """Rows in an existing review.csv where new_bucket differs from bucket — unapplied hand-sorting."""
+    import csv
+    if not os.path.exists(REVIEW_CSV):
+        return 0
+    try:
+        with open(REVIEW_CSV, newline="") as f:
+            return sum(1 for r in csv.DictReader(f)
+                       if (r.get("new_bucket") or "").strip() != (r.get("bucket") or "").strip())
+    except (OSError, ValueError):
+        return 0
+
+
+def export_review(rows, force=False):
     """Write data/review.csv — one row per wav, `new_bucket` is the column you edit."""
     import csv
+    n = pending_edits()
+    if n and not force:
+        sys.exit(f"{REVIEW_CSV} has {n} unapplied edit(s) — regenerating would discard them.\n"
+                 f"  apply them:   python3 scripts/build_manifest.py --import-review\n"
+                 f"  or discard:   python3 scripts/build_manifest.py --review --force")
     with open(REVIEW_CSV, "w", newline="") as f:
         w = csv.writer(f, lineterminator="\n")     # LF: this file is tracked in git
         w.writerow(["titan", "transcript", "bucket", "new_bucket", "file"])
@@ -250,7 +268,7 @@ def main():
     rows = walk()
 
     if review:
-        export_review(rows)
+        export_review(rows, force="--force" in sys.argv)
         return
     if imp:
         if not import_review(rows):
@@ -291,7 +309,7 @@ def main():
             moved += 1
         print(f"applied: moved {moved} files")
         if imp:
-            export_review(walk())      # keep review.csv in step with the library
+            export_review(walk(), force=True)   # edits are applied now; safe to regenerate
     else:
         print("dry run — pass --apply to move files")
 
