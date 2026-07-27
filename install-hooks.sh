@@ -27,12 +27,12 @@ hooks = d.setdefault("hooks", {})
 # (never PreToolUse/PostToolUse — they fire on every tool call.)
 EVENTS = {
     "SessionStart":       "start",    # pilot mode online
-    "Stop":               "done",     # enemy titan down
+    "Stop":               "follow",   # solid copy — per-turn ack, back to you pilot
     "Notification":       "notify",   # following your lead, pilot
     "SubagentStop":       "follow",   # subagent reports back
     "PostToolUseFailure": "error",    # critical damage sustained
     "PermissionRequest":  "warn",     # warning
-    "TaskCompleted":      "success",  # core ready
+    "TaskCompleted":      "guard",    # guard mode — holding & watching results until pilot returns
     "SessionEnd":         "exit",     # disengage
 }
 want = {ev: f"{tc} {te} &" for ev, te in EVENTS.items()}

@@ -1,0 +1,427 @@
+titan	file	current_bucket	proposed_bucket	transcript	source
+bt	myscans-detect-a-functioning-targeting-modual-northeast.wav	attack	attack	myscans detect a functioning targeting modual northeast	filename
+bt	myscans-detect-a-functioning-targeting-modual.wav	attack	attack	myscans detect a functioning targeting modual	filename
+bt	targeting-1.wav	attack	attack	targeting 1	filename
+bt	targeting-2.wav	attack	attack	targeting 2	filename
+bt	targeting-3.wav	attack	attack	targeting 3	filename
+bt	got-you.wav	down	down	got you	filename
+bt	are-you-sure-about-this-there-is-a-58-percent-chance-of-sucess.wav	misc	misc	are you sure about this there is a 58 percent chance of sucess	filename
+bt	dismembernent-may-also-occur.wav	misc	misc	dismembernent may also occur	filename
+bt	full-throw-with-other-deaths.wav	misc	misc	full throw with other deaths	filename
+bt	full-throw.wav	misc	misc	full throw	filename
+bt	good-throw-your-welcome-pilot.wav	misc	misc	good throw your welcome pilot	filename
+bt	goodluck.wav	misc	misc	goodluck	filename
+bt	i-can-throw-you-across-the-gap.wav	misc	misc	i can throw you across the gap	filename
+bt	listen-up-we-cant-take-you-directly-to-the-bridge.wav	misc	misc	listen up we cant take you directly to the bridge	filename
+bt	mechsounds1.wav	misc	misc	mechsounds1	stt-needed
+bt	mechsounds2.wav	misc	misc	mechsounds2	stt-needed
+bt	mechsounds3.wav	misc	misc	mechsounds3	stt-needed
+bt	mechsounds4.wav	misc	misc	mechsounds4	stt-needed
+bt	my-analis-concludes-our-only-option-is-a-throw-i-can-throw-you-across-the-gap.wav	misc	misc	my analis concludes our only option is a throw i can throw you across the gap	filename
+bt	my-analis-concludes-our-only-option-is-a-throw.wav	misc	misc	my analis concludes our only option is a throw	filename
+bt	projectial-mass-80-kilohtsmd.wav	misc	misc	projectial mass 80 kilohtsmd	filename
+bt	resulting-in-catostrophic-trama.wav	misc	misc	resulting in catostrophic trama	filename
+bt	there-are-significantly-more-variables-to-throwing-between-2-moving-platforms.wav	misc	misc	there are significantly more variables to throwing between 2 moving platforms	filename
+bt	there-are-significantly-more-variables.wav	misc	misc	there are significantly more variables	filename
+bt	there-is-a-32-percent-chance-of-a-incomplete-transversal-resulting-in.wav	misc	misc	there is a 32 percent chance of a incomplete transversal resulting in	filename
+bt	there-is-a-32-percent-chance-of-a-incomplete-transversal.wav	misc	misc	there is a 32 percent chance of a incomplete transversal	filename
+bt	there-is-a-58-percent-chance-of-sucess.wav	misc	misc	there is a 58 percent chance of sucess	filename
+bt	there-is-also-the-chance-of.wav	misc	misc	there is also the chance of	filename
+bt	there-is-also-the-possiblity-of-eetorcution-and-dissinengration.wav	misc	misc	there is also the possiblity of eetorcution and dissinengration	filename
+bt	well-neverget-past-those-guns.wav	misc	misc	well neverget past those guns	filename
+bt	what-about-the-other-32-percent-incomplete-trans.wav	misc	misc	what about the other 32 percent incomplete trans	filename
+bt	what-about-the-other-32-percent.wav	misc	misc	what about the other 32 percent	filename
+ion	engaging-titan-powering-up-primary-wepond-systems.wav	attack	attack	engaging titan powering up primary wepond systems	filename
+ion	engaging-titan.wav	attack	attack	engaging titan	filename
+ion	hostile-pilot-deteted-splinter-rifle-on-target.wav	attack	attack	hostile pilot deteted splinter rifle on target	filename
+ion	powering-up-primary-weponds-systems.wav	attack	attack	powering up primary weponds systems	filename
+ion	splinter-rifle-on-target.wav	attack	attack	splinter rifle on target	filename
+ion	firing-laser-core.wav	core	core	firing laser core	filename
+ion	laser-core-ready.wav	core	core	laser core ready	filename
+ion	advice-defensive-system.wav	damage	damage	advice defensive system	filename
+ion	critical-damage-sustained-advise-defensive-system.wav	damage	damage	critical damage sustained advise defensive system	filename
+ion	critical-damage-sustained.wav	damage	damage	critical damage sustained	filename
+ion	critical-damage-utlize-tripwire.wav	damage	damage	critical damage utlize tripwire	filename
+ion	critical-damage.wav	damage	damage	critical damage	filename
+ion	reactor-exposed.wav	damage	damage	reactor exposed	filename
+ion	reactor-is-vun2.wav	damage	damage	reactor is vun2	filename
+ion	warning-4-wav-critical-damage-sustatined-advice-defensive-systems.wav	damage	damage	warning 4 wav critical damage sustatined advice defensive systems	filename
+ion	warning-critical-damage-sustained.wav	damage	damage	warning critical damage sustained	filename
+ion	warning-heavy-damage-sustained.wav	damage	damage	warning heavy damage sustained	filename
+ion	warning-reactor-exposed.wav	damage	damage	warning reactor exposed	filename
+ion	warning-reactor-is-vun.wav	damage	damage	warning reactor is vun	filename
+ion	enemy-pilot-destroyed.wav	down	down	enemy pilot destroyed	filename
+ion	enemy-pilot-eliminated.wav	down	down	enemy pilot eliminated	filename
+ion	enemy-titan-down.wav	down	down	enemy titan down	filename
+ion	ejecting-pilot.wav	eject	eject	ejecting pilot	filename
+ion	it-is-good-to-have-you-back-pilot.wav	enter	enter	it is good to have you back pilot	filename
+ion	it-is-good-you-returned-saftey-piot.wav	enter	enter	it is good you returned saftey piot	filename
+ion	pilot-mode-online.wav	enter	enter	pilot mode online	filename
+ion	transfering-controls-to-manual-operation.wav	enter	enter	transfering controls to manual operation	filename
+ion	trasnfering-controls-to-pilot.wav	enter	enter	trasnfering controls to pilot	filename
+ion	asfa.wav	misc	misc	asfa	stt-needed
+ion	enemy-pilot-attacking.wav	warn	warn	enemy pilot attacking	filename
+ion	warning-2-enemy-pilot-attacking.wav	warn	warn	warning 2 enemy pilot attacking	filename
+ion	warning-2.wav	warn	warn	warning 2	filename
+ion	warning-3.wav	warn	warn	warning 3	filename
+ion	warning-4.wav	warn	warn	warning 4	filename
+ion	warning-there-is-a-hostile-pilot-on-the-hull.wav	warn	warn	warning there is a hostile pilot on the hull	filename
+ion	warning.wav	warn	warn	warning	filename
+jarvis	be-advised-i-am-engaging-a-hostile-pilot.wav	attack	attack	be advised i am engaging a hostile pilot	filename
+jarvis	be-advised-i-am-engaging-a-hostile-titan.wav	attack	attack	be advised i am engaging a hostile titan	filename
+jarvis	be-advised-i-am-engaging-an-enemy-pilot.wav	attack	attack	be advised i am engaging an enemy pilot	filename
+jarvis	be-advised-i-am-engaging-an-enemy-titan.wav	attack	attack	be advised i am engaging an enemy titan	filename
+jarvis	be-advised-i-am-engaging-enemy-infantry.wav	attack	attack	be advised i am engaging enemy infantry	filename
+jarvis	be-advised-i-am-engaging-hostile-infantry.wav	attack	attack	be advised i am engaging hostile infantry	filename
+jarvis	railgun-charge-rate-increased.wav	attack	attack	railgun charge rate increased	filename
+jarvis	your-40mm-cannon-now-has-automatic-fire.wav	attack	attack	your 40mm cannon now has automatic fire	filename
+jarvis	activating-damage-core.wav	core	core	activating damage core	filename
+jarvis	activating-dash-core.wav	core	core	activating dash core	filename
+jarvis	dash-core-expiring.wav	core	core	dash core expiring	filename
+jarvis	dash-core-is-offline-and-recharging.wav	core	core	dash core is offline and recharging	filename
+jarvis	dash-core-offline.wav	core	core	dash core offline	filename
+jarvis	your-dash-core-is-ready-to-go.wav	core	core	your dash core is ready to go	filename
+jarvis	critical-damage-i-recommend-a-tactical-withdraw.wav	damage	damage	critical damage i recommend a tactical withdraw	filename
+jarvis	critical-damage-i-recommend-evasive-manu.wav	damage	damage	critical damage i recommend evasive manu	filename
+jarvis	critical-damage-i-recommend-taking-cover.wav	damage	damage	critical damage i recommend taking cover	filename
+jarvis	critical-damage-sustained.wav	damage	damage	critical damage sustained	filename
+jarvis	critical-damage.wav	damage	damage	critical damage	filename
+jarvis	warning-critical-damage-sustined.wav	damage	damage	warning critical damage sustined	filename
+jarvis	warning-you-have-sustained-heavy-damage.wav	damage	damage	warning you have sustained heavy damage	filename
+jarvis	autoejecting.wav	eject	eject	autoejecting	filename
+jarvis	eject-override.wav	eject	eject	eject override	filename
+jarvis	forcing-pilot-eject.wav	eject	eject	forcing pilot eject	filename
+jarvis	i-am-detectig-a-friendly-pilot-onboard.wav	enter	enter	i am detectig a friendly pilot onboard	filename
+jarvis	a-friendly-titan-is-attacking-your-target.wav	misc	misc	a friendly titan is attacking your target	filename
+jarvis	a-pilot-is-attackig-your-target.wav	misc	misc	a pilot is attackig your target	filename
+jarvis	cluster-missile-flight-stablizers-improved.wav	misc	misc	cluster missile flight stablizers improved	filename
+jarvis	dash-capacity-increased.wav	misc	misc	dash capacity increased	filename
+jarvis	electicsmokedur.wav	misc	misc	electicsmokedur	stt-needed
+jarvis	explosive-titan-punch-active.wav	misc	misc	explosive titan punch active	filename
+jarvis	friendly-pilot-has-detached-from-your-titan.wav	misc	misc	friendly pilot has detached from your titan	filename
+jarvis	friendly-pilot-has-left-your-titan.wav	misc	misc	friendly pilot has left your titan	filename
+jarvis	friendly-pilot-is-clear-of-your-titan.wav	misc	misc	friendly pilot is clear of your titan	filename
+jarvis	friendly-pilot-is-now-clear-of-your-titan.wav	misc	misc	friendly pilot is now clear of your titan	filename
+jarvis	friendly-pilot-on-board.wav	misc	misc	friendly pilot on board	filename
+jarvis	friendly-pilot-on-your-titan.wav	misc	misc	friendly pilot on your titan	filename
+jarvis	friendly-pilot-riding-on-board.wav	misc	misc	friendly pilot riding on board	filename
+jarvis	have-a-nice-day.wav	misc	misc	have a nice day	filename
+jarvis	quad-rocket-missle-speed-increased.wav	misc	misc	quad rocket missle speed increased	filename
+jarvis	recommend-maintaining-a-safe-distance-from-allies.wav	misc	misc	recommend maintaining a safe distance from allies	filename
+jarvis	recommend-regen.wav	misc	misc	recommend regen	filename
+jarvis	rocket-salvo-payload-increased.wav	misc	misc	rocket salvo payload increased	filename
+jarvis	titan-burn-card-enabled.wav	misc	misc	titan burn card enabled	filename
+jarvis	x016-chaingun-damage-increased-against-sheilds.wav	misc	misc	x016 chaingun damage increased against sheilds	filename
+jarvis	you-can-now-deploy-up-to-2-partical-walls-at-a-time.wav	misc	misc	you can now deploy up to 2 partical walls at a time	filename
+jarvis	you-now-have-increased-dash-capacity.wav	misc	misc	you now have increased dash capacity	filename
+jarvis	your-arc-cannon-will-now-hit-all-nearby-targets.wav	misc	misc	your arc cannon will now hit all nearby targets	filename
+jarvis	your-cord-rocket-will-now-fire-cluster-munitions.wav	misc	misc	your cord rocket will now fire cluster munitions	filename
+jarvis	your-missle-pod-now-has-increased-ammution.wav	misc	misc	your missle pod now has increased ammution	filename
+jarvis	your-thriple-threat-wil-now-fire-magnetic-gernades.wav	misc	misc	your thriple threat wil now fire magnetic gernades	filename
+jarvis	your-vortex-shield-will-now-autoreflect-incoming-fire.wav	misc	misc	your vortex shield will now autoreflect incoming fire	filename
+jarvis	caution.wav	warn	warn	caution	filename
+jarvis	warning-colateral-damage-sustained-from-arc-cannon-fire-recommend-maintaining-a-safe-distance-from-allies.wav	warn	warn	warning colateral damage sustained from arc cannon fire recommend maintaining a safe distance from allies	filename
+jarvis	warning-colateral-damage-sustained-from-arc-cannon-fire.wav	warn	warn	warning colateral damage sustained from arc cannon fire	filename
+jarvis	warning-health-systems-low.wav	warn	warn	warning health systems low	filename
+jarvis	warning-i-am-engaging-multiply-titans.wav	warn	warn	warning i am engaging multiply titans	filename
+jarvis	warning-i-am-under-attack-from-multiple-titans.wav	warn	warn	warning i am under attack from multiple titans	filename
+jarvis	warning-recommend-evasive-maneuvers.wav	warn	warn	warning recommend evasive maneuvers	filename
+jarvis	warning-you-have-sustained-high-damage.wav	warn	warn	warning you have sustained high damage	filename
+jarvis	warning.wav	warn	warn	warning	filename
+legion	advise-aggressive-sustained-counterfire.wav	attack	attack	advise aggressive sustained counterfire	filename
+legion	conentrate-fire-on-the-weakest-target.wav	attack	attack	conentrate fire on the weakest target	filename
+legion	manual-targeting-restroed.wav	attack	attack	manual targeting restroed	filename
+legion	multiple-titans-are-engaging-you.wav	attack	attack	multiple titans are engaging you	filename
+legion	scanning-for-enemy-hostiles.wav	attack	attack	scanning for enemy hostiles	filename
+legion	smart-core-is-ready.wav	core	core	smart core is ready	filename
+legion	smart-core-offline.wav	core	core	smart core offline	filename
+legion	smart-core-ofline.wav	core	core	smart core ofline	filename
+legion	smart-core-on.wav	core	core	smart core on	filename
+legion	critical-damage-take-cover.wav	damage	damage	critical damage take cover	filename
+legion	reactor-is-exposed.wav	damage	damage	reactor is exposed	filename
+legion	warning-heavy-damage-sustaied.wav	damage	damage	warning heavy damage sustaied	filename
+legion	warning-major-damage-sustained.wav	damage	damage	warning major damage sustained	filename
+legion	warning-serv-reactor-damage-sustatined-reactor-is-exposed.wav	damage	damage	warning serv reactor damage sustatined reactor is exposed	filename
+legion	warning-serv-reactor-damage-sustatined.wav	damage	damage	warning serv reactor damage sustatined	filename
+legion	eject-you-are-engaging-multi-titans.wav	eject	eject	eject you are engaging multi titans	filename
+legion	eject.wav	eject	eject	eject	filename
+legion	eject2.wav	eject	eject	eject2	filename
+legion	pilot-mode-engaged-manual-targeting-restored.wav	enter	enter	pilot mode engaged manual targeting restored	filename
+legion	pilot-mode-engaged.wav	enter	enter	pilot mode engaged	filename
+legion	pilot-onboard-restoring-manual-controls.wav	enter	enter	pilot onboard restoring manual controls	filename
+legion	pilot-onboard.wav	enter	enter	pilot onboard	filename
+legion	transfering-controls-to-manual-operation-trim.wav	enter	enter	transfering controls to manual operation trim	filename
+legion	transfering-controls-to-manual-operation.wav	enter	enter	transfering controls to manual operation	filename
+legion	we-are-better-together.wav	enter	enter	we are better together	filename
+legion	welcome-back-pilot-mode-online.wav	enter	enter	welcome back pilot mode online	filename
+legion	welcome-back.wav	enter	enter	welcome back	filename
+legion	engaging-follow-mode.wav	follow	follow	engaging follow mode	filename
+legion	engaging-follow-mode2.wav	follow	follow	engaging follow mode2	filename
+legion	follow-mode-engaged.wav	follow	follow	follow mode engaged	filename
+legion	providing-backup.wav	follow	follow	providing backup	filename
+legion	providing-backup2.wav	follow	follow	providing backup2	filename
+legion	engaging-gaurd-mode.wav	guard	guard	engaging gaurd mode	filename
+legion	gaurdmode-activiated-weponds-hot.wav	guard	guard	gaurdmode activiated weponds hot	filename
+legion	friendly-pilot-has-left-the-hull.wav	misc	misc	friendly pilot has left the hull	filename
+legion	friendly-pilot-on-extiorer.wav	misc	misc	friendly pilot on extiorer	filename
+legion	pred-cannon-at-your-disposal.wav	misc	misc	pred cannon at your disposal	filename
+legion	outnumbered-2-to-1-ammo-feeds-nominal.wav	warn	warn	outnumbered 2 to 1 ammo feeds nominal	filename
+legion	pilot-we-are-outnumbered-2-to-1.wav	warn	warn	pilot we are outnumbered 2 to 1	filename
+legion	warning-enemy-pilot-attacking.wav	warn	warn	warning enemy pilot attacking	filename
+legion	warning-enemy-pilot-attacking2.wav	warn	warn	warning enemy pilot attacking2	filename
+legion	warning-enemy-pilot-attacking3.wav	warn	warn	warning enemy pilot attacking3	filename
+legion	warning-hostile-pilot-on-attached-to-hull.wav	warn	warn	warning hostile pilot on attached to hull	filename
+legion	warning-hostile-pilot-on-board.wav	warn	warn	warning hostile pilot on board	filename
+legion	warning-hostile-pilot-on-board2.wav	warn	warn	warning hostile pilot on board2	filename
+legion	warning-hostile-pilot-on-hull.wav	warn	warn	warning hostile pilot on hull	filename
+legion	warning-multi-enemy-pilots-attacking.wav	warn	warn	warning multi enemy pilots attacking	filename
+legion	warning-there-is-a-hostile-pilot-on-the-hu.wav	warn	warn	warning there is a hostile pilot on the hu	filename
+legion	warning-there-is-a-hostile-pilot-on-the-hull2.wav	warn	warn	warning there is a hostile pilot on the hull2	filename
+legion	warning-we-have-a-hostile-pilot-on-board.wav	warn	warn	warning we have a hostile pilot on board	filename
+legion	warning-we-have-a-hostile-pilot-on-board2.wav	warn	warn	warning we have a hostile pilot on board2	filename
+legion	you-are-outnumbered-by-multi-titqans-advise-aggressive-sustatined-counterfire.wav	warn	warn	you are outnumbered by multi titqans advise aggressive sustatined counterfire	filename
+monarch	engagingtitan.wav	attack	attack	engagingtitan	filename
+monarch	moving-in-to-kill.wav	attack	attack	moving in to kill	filename
+monarch	pilotengagingenemytitan.wav	attack	attack	pilotengagingenemytitan	filename
+monarch	x016armedtokill.wav	attack	attack	x016armedtokill	stt-needed
+monarch	upgrade-core-maximum-power.wav	core	core	upgrade core maximum power	filename
+monarch	upgrade-core-ready.wav	core	core	upgrade core ready	filename
+monarch	upgrade-core-ready2.wav	core	core	upgrade core ready2	filename
+monarch	upgrade-core-standing-by.wav	core	core	upgrade core standing by	filename
+monarch	critical-damage-advice-cover.wav	damage	damage	critical damage advice cover	filename
+monarch	critical-damage-take-cover.wav	damage	damage	critical damage take cover	filename
+monarch	critical-damage-takeevasiveaction.wav	damage	damage	critical damage takeevasiveaction	filename
+monarch	critical-damage.wav	damage	damage	critical damage	filename
+monarch	protetivecasingcompromised.wav	damage	damage	protetivecasingcompromised	filename
+monarch	reactor-is-exposed.wav	damage	damage	reactor is exposed	filename
+monarch	takeevasive-action.wav	damage	damage	takeevasive action	filename
+monarch	warningcriticalreactordaamge.wav	damage	damage	warningcriticalreactordaamge	filename
+monarch	warningreactorexposed.wav	damage	damage	warningreactorexposed	filename
+monarch	warningreactorexposedprotetivecasingcompromised.wav	damage	damage	warningreactorexposedprotetivecasingcompromised	filename
+monarch	warningreactorsustatinedreactorisexposed.wav	damage	damage	warningreactorsustatinedreactorisexposed	filename
+monarch	warningsevreactordamagesustained.wav	damage	damage	warningsevreactordamagesustained	filename
+monarch	monarch-pilotsystemtrasnfer.wav	enter	enter	monarch pilotsystemtrasnfer	filename
+monarch	pilot-detected-validating-proticals.wav	enter	enter	pilot detected validating proticals	filename
+monarch	transfering-systems-to-pilot.wav	enter	enter	transfering systems to pilot	filename
+monarch	welcome-back-pilot.wav	enter	enter	welcome back pilot	filename
+monarch	welcome-back-pilot2.wav	enter	enter	welcome back pilot2	filename
+monarch	your-skills-are-impressive-pilot-it-is-good-to-have-you-return.wav	enter	enter	your skills are impressive pilot it is good to have you return	filename
+monarch	follow-mode-engaged.wav	follow	follow	follow mode engaged	filename
+monarch	followingyourleadpilot.wav	follow	follow	followingyourleadpilot	filename
+monarch	understood.wav	follow	follow	understood	filename
+monarch	gaurdmode.wav	guard	guard	gaurdmode	filename
+monarch	gaurdmodeactive.wav	guard	guard	gaurdmodeactive	filename
+monarch	gaurdmodeactiveprotocal3.wav	guard	guard	gaurdmodeactiveprotocal3	filename
+monarch	gaurdmodeactiviated.wav	guard	guard	gaurdmodeactiviated	filename
+monarch	gaurdmodenoxo16.wav	guard	guard	gaurdmodenoxo16	filename
+monarch	protocal3.wav	guard	guard	protocal3	filename
+monarch	ugrade-stage-1.wav	misc	misc	ugrade stage 1	filename
+northstar	plasma-railgun-charged.wav	attack	attack	plasma railgun charged	filename
+northstar	flight-core-activated.wav	core	core	flight core activated	filename
+northstar	flight-core-activated2.wav	core	core	flight core activated2	filename
+northstar	flight-core-offline.wav	core	core	flight core offline	filename
+northstar	flight-core-offline2.wav	core	core	flight core offline2	filename
+northstar	flight-core-offline3.wav	core	core	flight core offline3	filename
+northstar	flight-core-rady.wav	core	core	flight core rady	filename
+northstar	flight-core-ready.wav	core	core	flight core ready	filename
+northstar	flight-core-ready2.wav	core	core	flight core ready2	filename
+northstar	flight-core-ready3.wav	core	core	flight core ready3	filename
+northstar	critical-damage-take-cover.wav	damage	damage	critical damage take cover	filename
+northstar	ejectx4.wav	eject	eject	ejectx4	filename
+northstar	northstar-systems-tranfered-to-piot.wav	enter	enter	northstar systems tranfered to piot	filename
+northstar	pilot-control-initiated.wav	enter	enter	pilot control initiated	filename
+northstar	pilot-mode-online.wav	enter	enter	pilot mode online	filename
+northstar	pilot-mode-online2.wav	enter	enter	pilot mode online2	filename
+northstar	systems-are-yours-we-are-a-strong-force-together.wav	enter	enter	systems are yours we are a strong force together	filename
+northstar	transfering-systems-to-manual-operation.wav	enter	enter	transfering systems to manual operation	filename
+northstar	trasnfering-systems-to-pilot.wav	enter	enter	trasnfering systems to pilot	filename
+northstar	disengage.wav	exit	exit	disengage	filename
+northstar	following-your-lead-pilot.wav	follow	follow	following your lead pilot	filename
+northstar	solid-copy.wav	follow	follow	solid copy	filename
+northstar	engaging-gaurd-mode-plasma-railgun-charged.wav	guard	guard	engaging gaurd mode plasma railgun charged	filename
+northstar	engaging-gaurd-mode.wav	guard	guard	engaging gaurd mode	filename
+northstar	engaging-gaurd-mode2.wav	guard	guard	engaging gaurd mode2	filename
+northstar	be-aware-pilot-you-are-outnumbered-by-hostile-titans.wav	warn	warn	be aware pilot you are outnumbered by hostile titans	filename
+northstar	be-aware-pilot.wav	warn	warn	be aware pilot	filename
+northstar	multititans-attacking.wav	warn	warn	multititans attacking	filename
+northstar	our-postion-is-compromised.wav	warn	warn	our postion is compromised	filename
+northstar	warning-enemy-pilot-attacking.wav	warn	warn	warning enemy pilot attacking	filename
+northstar	warning-there-is-a-hostile-pilot-on-the-hull.wav	warn	warn	warning there is a hostile pilot on the hull	filename
+portal	battery-critical.wav	damage	damage	battery critical	filename
+portal	critical-error.wav	damage	damage	critical error	filename
+portal	hardware-fail.wav	damage	damage	hardware fail	filename
+portal	normal.wav	down	down	normal	filename
+portal	hardware-insert.wav	enter	enter	hardware insert	filename
+portal	logon.wav	enter	enter	logon	filename
+portal	hardware-remove.wav	exit	exit	hardware remove	filename
+portal	logoff.wav	exit	exit	logoff	filename
+portal	recycle.wav	exit	exit	recycle	filename
+portal	shutdown.wav	exit	exit	shutdown	filename
+portal	asterisk.wav	follow	follow	asterisk	stt-needed
+portal	navigate.wav	follow	follow	navigate	filename
+portal	notify.wav	follow	follow	notify	filename
+portal	asterisk.wav	misc	misc	asterisk	stt-needed
+portal	battery-critical.wav	misc	misc	battery critical	filename
+portal	battery-low.wav	misc	misc	battery low	filename
+portal	critical-error.wav	misc	misc	critical error	filename
+portal	hardware-fail.wav	misc	misc	hardware fail	filename
+portal	hardware-insert.wav	misc	misc	hardware insert	filename
+portal	hardware-remove.wav	misc	misc	hardware remove	filename
+portal	logoff.wav	misc	misc	logoff	filename
+portal	logon.wav	misc	misc	logon	filename
+portal	navigate.wav	misc	misc	navigate	filename
+portal	normal.wav	misc	misc	normal	filename
+portal	notify.wav	misc	misc	notify	filename
+portal	recycle.wav	misc	misc	recycle	filename
+portal	shutdown.wav	misc	misc	shutdown	filename
+portal	warning.wav	misc	misc	warning	filename
+portal	battery-low.wav	warn	warn	battery low	filename
+portal	warning.wav	warn	warn	warning	filename
+ronin	engaging-enemy-titan.wav	attack	attack	engaging enemy titan	filename
+ronin	focus-plan-attack.wav	attack	attack	focus plan attack	filename
+ronin	focus.wav	attack	attack	focus	filename
+ronin	sensors-scanning-for-enemy-hostiles.wav	attack	attack	sensors scanning for enemy hostiles	filename
+ronin	weponds-energized.wav	attack	attack	weponds energized	filename
+ronin	sword-core-activated.wav	core	core	sword core activated	filename
+ronin	sword-core-offline.wav	core	core	sword core offline	filename
+ronin	sword-core-offline2.wav	core	core	sword core offline2	filename
+ronin	sword-core-ready-keep-your-enemies-close.wav	core	core	sword core ready keep your enemies close	filename
+ronin	sword-core-ready.wav	core	core	sword core ready	filename
+ronin	sword-core-ready2.wav	core	core	sword core ready2	filename
+ronin	critical-damage-advise-cover.wav	damage	damage	critical damage advise cover	filename
+ronin	critical-damage-take-evasive-action.wav	damage	damage	critical damage take evasive action	filename
+ronin	heavy-damage-sustained.wav	damage	damage	heavy damage sustained	filename
+ronin	protective-casing-comprimised.wav	damage	damage	protective casing comprimised	filename
+ronin	warning-heavy-damage-sustained.wav	damage	damage	warning heavy damage sustained	filename
+ronin	warning-reactor-exposed-protective-casing-comp.wav	damage	damage	warning reactor exposed protective casing comp	filename
+ronin	warning-reactor-exposed-protective-casing-comp2.wav	damage	damage	warning reactor exposed protective casing comp2	filename
+ronin	warning-reactor-exposed.wav	damage	damage	warning reactor exposed	filename
+ronin	warning-reactor-exposed2.wav	damage	damage	warning reactor exposed2	filename
+ronin	warning-reactor-exposed3.wav	damage	damage	warning reactor exposed3	filename
+ronin	controls-are-handed-to-you-pilot.wav	enter	enter	controls are handed to you pilot	filename
+ronin	controls-are-handed-to-you-pilot2.wav	enter	enter	controls are handed to you pilot2	filename
+ronin	pilot-control-initiated-focus-plan-attach.wav	enter	enter	pilot control initiated focus plan attach	filename
+ronin	pilot-control-initiated.wav	enter	enter	pilot control initiated	filename
+ronin	the-sword-is-yours-pilot.wav	enter	enter	the sword is yours pilot	filename
+ronin	the-systems-are-yours-we-are-stronger-united.wav	enter	enter	the systems are yours we are stronger united	filename
+ronin	the-systems-are-yours.wav	enter	enter	the systems are yours	filename
+ronin	trasnfering-controls-to-manual-operation.wav	enter	enter	trasnfering controls to manual operation	filename
+ronin	trasnfering-controls-to-manual-operation2.wav	enter	enter	trasnfering controls to manual operation2	filename
+ronin	trasnfering-controls.wav	enter	enter	trasnfering controls	filename
+ronin	we-are-stronger-united.wav	enter	enter	we are stronger united	filename
+ronin	welcome-back-pilot.wav	enter	enter	welcome back pilot	filename
+ronin	welcome-back.wav	enter	enter	welcome back	filename
+ronin	follow-mode-engaged.wav	follow	follow	follow mode engaged	filename
+ronin	follow-mode.wav	follow	follow	follow mode	filename
+ronin	solid-copy-following-your-lead-pilot.wav	follow	follow	solid copy following your lead pilot	filename
+ronin	solid-copy.wav	follow	follow	solid copy	filename
+ronin	engaging-gaurd-mdoe.wav	guard	guard	engaging gaurd mdoe	filename
+ronin	gaurd-mode-activited-sensors-scanning-for-enemy-hostile.wav	guard	guard	gaurd mode activited sensors scanning for enemy hostile	filename
+ronin	gaurd-mode-activited-weponds-energized.wav	guard	guard	gaurd mode activited weponds energized	filename
+ronin	gaurd-mode-activited.wav	guard	guard	gaurd mode activited	filename
+ronin	keep-your-enemies-close.wav	misc	misc	keep your enemies close	filename
+ronin	plan.wav	misc	misc	plan	filename
+ronin	warning.wav	warn	warn	warning	filename
+scorch	enemy-titans-engaging-in-force.wav	attack	attack	enemy titans engaging in force	filename
+scorch	priming-offensive-thermal-systems.wav	attack	attack	priming offensive thermal systems	filename
+scorch	scanning-for-enemy-hostiles.wav	attack	attack	scanning for enemy hostiles	filename
+scorch	flame-core-activated.wav	core	core	flame core activated	filename
+scorch	flame-core-is-ready.wav	core	core	flame core is ready	filename
+scorch	flame-core-online.wav	core	core	flame core online	filename
+scorch	flame-croe-is-ready.wav	core	core	flame croe is ready	filename
+scorch	flamecore-activated.wav	core	core	flamecore activated	filename
+scorch	warning-core-reactor-overload-near.wav	core	core	warning core reactor overload near	filename
+scorch	critical-damage-take-cover.wav	damage	damage	critical damage take cover	filename
+scorch	enemy-pilot-eleminated.wav	down	down	enemy pilot eleminated	filename
+scorch	enemy-titan-destroyed.wav	down	down	enemy titan destroyed	filename
+scorch	enemy-titan-down.wav	down	down	enemy titan down	filename
+scorch	glad-to-have-you-back-pilot-we-are-a-stronger-team-together.wav	enter	enter	glad to have you back pilot we are a stronger team together	filename
+scorch	glad-to-have-you-back-pilot-we-are-a-stronger-team-together2.wav	enter	enter	glad to have you back pilot we are a stronger team together2	filename
+scorch	pilol-control-online-thermal-systems-functional.wav	enter	enter	pilol control online thermal systems functional	filename
+scorch	pilot-control-online-thermal-systems-functional.wav	enter	enter	pilot control online thermal systems functional	filename
+scorch	pilot-mode-engaged-manual-control-restored.wav	enter	enter	pilot mode engaged manual control restored	filename
+scorch	pilot-mode-onlien.wav	enter	enter	pilot mode onlien	filename
+scorch	pilot-onboard-restoring-manual-control.wav	enter	enter	pilot onboard restoring manual control	filename
+scorch	scortch-ai-tranfering-controls-to-pilot.wav	enter	enter	scortch ai tranfering controls to pilot	filename
+scorch	scortch-ai-tranfering-controls-to-pilot2.wav	enter	enter	scortch ai tranfering controls to pilot2	filename
+scorch	transfering-controls-to-pilot.wav	enter	enter	transfering controls to pilot	filename
+scorch	welcome-back-cockpit-cooling-reactivated.wav	enter	enter	welcome back cockpit cooling reactivated	filename
+scorch	welcome-back-cockpit-cooling-reactivated2.wav	enter	enter	welcome back cockpit cooling reactivated2	filename
+scorch	follow-mode-engaged.wav	follow	follow	follow mode engaged	filename
+scorch	engaging-gaurdmode.wav	guard	guard	engaging gaurdmode	filename
+scorch	enemy-titan-detected-attempting-situation-control.wav	warn	warn	enemy titan detected attempting situation control	filename
+scorch	outnumbered-2-to-1-defensive-option-heat-sheild.wav	warn	warn	outnumbered 2 to 1 defensive option heat sheild	filename
+scorch	outnumbered-2-to-1-keep-them-in-your-sights.wav	warn	warn	outnumbered 2 to 1 keep them in your sights	filename
+scorch	piot-we-are-outnumbered-2-to-1.wav	warn	warn	piot we are outnumbered 2 to 1	filename
+scorch	warning-significiant-damage-sustatined.wav	warn	warn	warning significiant damage sustatined	filename
+scorch	warning-there-is-a-hostile-pilot-on-the-hull.wav	warn	warn	warning there is a hostile pilot on the hull	filename
+scorch	you-are-outnumbered.wav	warn	warn	you are outnumbered	filename
+tone	40mm-armed.wav	attack	attack	40mm armed	filename
+tone	good-targeting-pilot-its-good-to-have-you-return.wav	attack	attack	good targeting pilot its good to have you return	filename
+tone	good-targeting-pilot.wav	attack	attack	good targeting pilot	filename
+tone	my-systems-are-yous-paint-as-many-targets-as-you-can-with-the-40mm.wav	attack	attack	my systems are yous paint as many targets as you can with the 40mm	filename
+tone	paint-as-many-targets-as-you-can-with-the-40mm.wav	attack	attack	paint as many targets as you can with the 40mm	filename
+tone	seak-out-target-locks-and-track-them.wav	attack	attack	seak out target locks and track them	filename
+tone	tracking-hostiles.wav	attack	attack	tracking hostiles	filename
+tone	salvo-core-activiated.wav	core	core	salvo core activiated	filename
+tone	salvo-core-activiated2.wav	core	core	salvo core activiated2	filename
+tone	savo-core-ready.wav	core	core	savo core ready	filename
+tone	savo-core-ready2.wav	core	core	savo core ready2	filename
+tone	casing-compromised.wav	damage	damage	casing compromised	filename
+tone	critical-damage-seak-cover.wav	damage	damage	critical damage seak cover	filename
+tone	critical-damage-seak-cover2.wav	damage	damage	critical damage seak cover2	filename
+tone	critical-damage.wav	damage	damage	critical damage	filename
+tone	major-damage-sustained.wav	damage	damage	major damage sustained	filename
+tone	protective-casing-comp.wav	damage	damage	protective casing comp	filename
+tone	reactor-is-vun.wav	damage	damage	reactor is vun	filename
+tone	sev-damage-incured.wav	damage	damage	sev damage incured	filename
+tone	warning-critical-damage-sustatined.wav	damage	damage	warning critical damage sustatined	filename
+tone	warning-major-damage-sustained.wav	damage	damage	warning major damage sustained	filename
+tone	warning-reactor-exposed-casing-comp.wav	damage	damage	warning reactor exposed casing comp	filename
+tone	warning-reactor-exposed-casing-comp2.wav	damage	damage	warning reactor exposed casing comp2	filename
+tone	warning-reactor-exposed.wav	damage	damage	warning reactor exposed	filename
+tone	warning-reactor-is-vun-sev-damage-incured.wav	damage	damage	warning reactor is vun sev damage incured	filename
+tone	warning-we-have-taken-critical-damage-advice-taking-cover.wav	damage	damage	warning we have taken critical damage advice taking cover	filename
+tone	warning-we-have-taken-critical-damage-advice-taking-cover2.wav	damage	damage	warning we have taken critical damage advice taking cover2	filename
+tone	warning-we-have-taken-critical-damage.wav	damage	damage	warning we have taken critical damage	filename
+tone	warning-we-have-taken-critical-damage2.wav	damage	damage	warning we have taken critical damage2	filename
+tone	we-have-taken-critical-damage.wav	damage	damage	we have taken critical damage	filename
+tone	eject-eject-eject.wav	eject	eject	eject eject eject	filename
+tone	eject-imedialty.wav	eject	eject	eject imedialty	filename
+tone	eject.wav	eject	eject	eject	filename
+tone	eject2.wav	eject	eject	eject2	filename
+tone	all-systems-nominal.wav	enter	enter	all systems nominal	filename
+tone	it-is-good-to-have-you-return.wav	enter	enter	it is good to have you return	filename
+tone	my-systems-are-yours.wav	enter	enter	my systems are yours	filename
+tone	my-systems-are-yours2.wav	enter	enter	my systems are yours2	filename
+tone	pilot-control-intitated-seak-out-target-locks-and-track-them.wav	enter	enter	pilot control intitated seak out target locks and track them	filename
+tone	pilot-control-intitated.wav	enter	enter	pilot control intitated	filename
+tone	pilot-mode-online-sonar-pulse.wav	enter	enter	pilot mode online sonar pulse	filename
+tone	pilot-mode-online.wav	enter	enter	pilot mode online	filename
+tone	rocket-systems-are-in-your-control-pilot.wav	enter	enter	rocket systems are in your control pilot	filename
+tone	switching-to-manual-all-systems-nonimal.wav	enter	enter	switching to manual all systems nonimal	filename
+tone	switching-to-manual.wav	enter	enter	switching to manual	filename
+tone	systems-are-in-your-control-pilot.wav	enter	enter	systems are in your control pilot	filename
+tone	tone-systems-trasnfered-to-pilot.wav	enter	enter	tone systems trasnfered to pilot	filename
+tone	transfered-to-pilot.wav	enter	enter	transfered to pilot	filename
+tone	welcome-back-pilot.wav	enter	enter	welcome back pilot	filename
+tone	follow-mode-engaged.wav	follow	follow	follow mode engaged	filename
+tone	follow-mode-engaged2.wav	follow	follow	follow mode engaged2	filename
+tone	follow-mode-engaged3.wav	follow	follow	follow mode engaged3	filename
+tone	following-your-lead-pilot.wav	follow	follow	following your lead pilot	filename
+tone	folow-mode-engaged.wav	follow	follow	folow mode engaged	filename
+tone	understood.wav	follow	follow	understood	filename
+tone	engaging-gaurd-mode-40mm-armed.wav	guard	guard	engaging gaurd mode 40mm armed	filename
+tone	engaging-gaurd-mode-40mm-armed2.wav	guard	guard	engaging gaurd mode 40mm armed2	filename
+tone	engaging-gaurd-mode.wav	guard	guard	engaging gaurd mode	filename
+tone	engaging-gaurd-mode2.wav	guard	guard	engaging gaurd mode2	filename
+tone	gaurd-mode-activiated-tracking-hostils.wav	guard	guard	gaurd mode activiated tracking hostils	filename
+tone	gaurd-mode-activiated-tracking-hostils2.wav	guard	guard	gaurd mode activiated tracking hostils2	filename
+tone	gaurd-mode-activiated.wav	guard	guard	gaurd mode activiated	filename
+tone	gaurd-mode-activiated2.wav	guard	guard	gaurd mode activiated2	filename
+tone	tatical-option-paritcal-wall-to-assist-evasion.wav	misc	misc	tatical option paritcal wall to assist evasion	filename
+tone	tatical-option-partical-wall.wav	misc	misc	tatical option partical wall	filename
+tone	warning-enemy-pilot-attacking.wav	warn	warn	warning enemy pilot attacking	filename
+tone	warning.wav	warn	warn	warning	filename
+tone	warning2.wav	warn	warn	warning2	filename
+tone	warning3.wav	warn	warn	warning3	filename

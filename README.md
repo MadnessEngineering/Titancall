@@ -76,12 +76,12 @@ Run `./install-hooks.sh` to wire these into `~/.claude/settings.json` (idempoten
 | Claude Code hook | titancall event | sounds like |
 |------------------|-----------------|-------------|
 | SessionStart       | start   | "Pilot mode online" |
-| Stop               | done    | "Enemy Titan down" |
+| Stop               | follow  | "Solid copy" (per-turn ack, back to you) |
 | Notification       | notify  | "Following your lead, Pilot" |
 | SubagentStop       | follow  | "Solid copy" |
 | PostToolUseFailure | error   | "Critical damage sustained" |
 | PermissionRequest  | warn    | "Warning" |
-| TaskCompleted      | success | "Core ready" |
+| TaskCompleted      | guard   | "Guard mode activated" (holding results until you return) |
 | SessionEnd         | exit    | "Disengage" |
 
 `PreToolUse`/`PostToolUse` are intentionally excluded — they fire on every tool call. Edit the `EVENTS`

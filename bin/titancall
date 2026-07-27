@@ -3,6 +3,12 @@
 # Pipe any project/hook into this: `titancall done &`  → this project's Titan speaks a fitting line.
 set -uo pipefail
 
+# resolve repo dir through the ~/.local/bin symlink so we can find data/buckets.tsv
+_src="${BASH_SOURCE[0]}"
+while [ -h "$_src" ]; do _d=$(cd -P "$(dirname "$_src")" && pwd); _src=$(readlink "$_src"); [[ "$_src" != /* ]] && _src="$_d/$_src"; done
+REPO_DIR="$(cd -P "$(dirname "$_src")/.." && pwd)"
+MANIFEST="$REPO_DIR/data/buckets.tsv"   # authoritative titan\tslug\tbucket (from scripts/build_manifest.py)
+
 TITANCALL_HOME="${TITANCALL_HOME:-$HOME/.local/share/titancall}"
 SOUNDS="$TITANCALL_HOME/sounds"
 STATE="$TITANCALL_HOME/state"        # per-titan last-fired epoch for cooldown
@@ -59,6 +65,11 @@ cfg_set() {
 }
 
 slugify() { echo "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/\.wav$//; s/[^a-z0-9]+/-/g; s/^-+//; s/-+$//; s/-+/-/g'; }
+
+manifest_bucket() { # titan slug -> curated bucket from data/buckets.tsv, or nothing
+  [ -f "$MANIFEST" ] || return 1
+  awk -F'\t' -v t="$1" -v s="$2" '$1==t && $2==s {print $3; f=1} END{exit !f}' "$MANIFEST"
+}
 
 classify() {
   local name="$1" rule bucket pats pat
@@ -310,11 +321,13 @@ cmd_normalize() {
   local titan_dir f base bucket slug dest n moved=0
   for titan_dir in "$SOUNDS"/*/; do
     [ -d "$titan_dir" ] || continue
+    local titan; titan=$(basename "$titan_dir")
     while IFS= read -r f; do
       base=$(basename "$f")
-      bucket=$(classify "$(echo "$base" | tr '[:upper:]' '[:lower:]')")
-      mkdir -p "$titan_dir$bucket"
       slug=$(slugify "$base"); [ -z "$slug" ] && slug="line"
+      # manifest override (semantic, from build_manifest.py) wins; else keyword classify()
+      bucket=$(manifest_bucket "$titan" "$slug") || bucket=$(classify "$(echo "$base" | tr '[:upper:]' '[:lower:]')")
+      mkdir -p "$titan_dir$bucket"
       dest="$titan_dir$bucket/$slug.wav"; n=1
       while [ -e "$dest" ]; do dest="$titan_dir$bucket/$slug-$n.wav"; n=$((n+1)); done
       mv "$f" "$dest" && moved=$((moved+1))
