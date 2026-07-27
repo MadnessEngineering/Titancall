@@ -183,7 +183,7 @@ def export_review(rows):
     """Write data/review.csv — one row per wav, `new_bucket` is the column you edit."""
     import csv
     with open(REVIEW_CSV, "w", newline="") as f:
-        w = csv.writer(f)
+        w = csv.writer(f, lineterminator="\n")     # LF: this file is tracked in git
         w.writerow(["titan", "transcript", "bucket", "new_bucket", "file"])
         for t, fn, slug, cur, prop, tr, src in rows:
             w.writerow([t, tr, prop, prop, fn])
