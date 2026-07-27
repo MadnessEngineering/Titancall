@@ -195,6 +195,7 @@ def pending_edits():
 def export_review(rows, force=False):
     """Write data/review.csv — one row per wav, `new_bucket` is the column you edit."""
     import csv
+    check_unique_slugs(rows)
     n = pending_edits()
     if n and not force:
         sys.exit(f"{REVIEW_CSV} has {n} unapplied edit(s) — regenerating would discard them.\n"
@@ -218,11 +219,30 @@ def export_review(rows, force=False):
         print(f"  {t:<10} {' '.join(missing) if missing else '(complete)'}")
 
 
+def check_unique_slugs(rows):
+    """Refuse to run while a titan has the same filename in two buckets.
+
+    Overrides are keyed (titan, slug) — one bucket per slug, by construction. A duplicate
+    makes `titan/foo.wav` ambiguous: --import-review can't tell the two rows apart, and an
+    override for the slug moves BOTH copies. Portal shipped 15 such twins and an import
+    shuffled them, which is what taught us to check.
+    """
+    seen = {}
+    for t, fn, slug, cur, prop, tr, src in rows:
+        seen.setdefault((t, fn), []).append(cur)
+    dupes = {k: v for k, v in seen.items() if len(v) > 1}
+    if dupes:
+        lines = "\n".join(f"  {t}/{fn}  in: {', '.join(sorted(b))}" for (t, fn), b in sorted(dupes.items()))
+        sys.exit(f"{len(dupes)} duplicate filename(s) across buckets — refusing to run:\n{lines}\n"
+                 "Delete the redundant copies (they are usually byte-identical) and retry.")
+
+
 def import_review(rows):
     """Read edited data/review.csv, fold changes into data/overrides.tsv. Returns True if anything changed."""
     import csv
     if not os.path.exists(REVIEW_CSV):
         sys.exit(f"no {REVIEW_CSV} — run --review first")
+    check_unique_slugs(rows)
     by_file = {(t, fn): prop for t, fn, slug, cur, prop, tr, src in rows}
     ov, changed, bad = user_overrides(), [], []
     with open(REVIEW_CSV, newline="") as f:
