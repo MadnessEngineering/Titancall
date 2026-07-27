@@ -13,10 +13,10 @@ bt	good-throw-your-welcome-pilot.wav	misc	misc	good throw your welcome pilot	fil
 bt	goodluck.wav	misc	misc	goodluck	filename
 bt	i-can-throw-you-across-the-gap.wav	misc	misc	i can throw you across the gap	filename
 bt	listen-up-we-cant-take-you-directly-to-the-bridge.wav	misc	misc	listen up we cant take you directly to the bridge	filename
-bt	mechsounds1.wav	misc	misc	mechsounds1	stt-needed
-bt	mechsounds2.wav	misc	misc	mechsounds2	stt-needed
-bt	mechsounds3.wav	misc	misc	mechsounds3	stt-needed
-bt	mechsounds4.wav	misc	misc	mechsounds4	stt-needed
+bt	mechsounds1.wav	misc	misc	(dramatic music / mech SFX)	sfx
+bt	mechsounds2.wav	misc	misc	(dramatic music / mech SFX)	sfx
+bt	mechsounds3.wav	misc	misc	(dramatic music / mech SFX)	sfx
+bt	mechsounds4.wav	misc	misc	(dramatic music / mech SFX)	sfx
 bt	my-analis-concludes-our-only-option-is-a-throw-i-can-throw-you-across-the-gap.wav	misc	misc	my analis concludes our only option is a throw i can throw you across the gap	filename
 bt	my-analis-concludes-our-only-option-is-a-throw.wav	misc	misc	my analis concludes our only option is a throw	filename
 bt	projectial-mass-80-kilohtsmd.wav	misc	misc	projectial mass 80 kilohtsmd	filename
@@ -59,7 +59,7 @@ ion	it-is-good-you-returned-saftey-piot.wav	enter	enter	it is good you returned 
 ion	pilot-mode-online.wav	enter	enter	pilot mode online	filename
 ion	transfering-controls-to-manual-operation.wav	enter	enter	transfering controls to manual operation	filename
 ion	trasnfering-controls-to-pilot.wav	enter	enter	trasnfering controls to pilot	filename
-ion	asfa.wav	misc	misc	asfa	stt-needed
+ion	asfa.wav	misc	damage	severe damage	stt
 ion	enemy-pilot-attacking.wav	warn	warn	enemy pilot attacking	filename
 ion	warning-2-enemy-pilot-attacking.wav	warn	warn	warning 2 enemy pilot attacking	filename
 ion	warning-2.wav	warn	warn	warning 2	filename
@@ -96,7 +96,7 @@ jarvis	a-friendly-titan-is-attacking-your-target.wav	misc	misc	a friendly titan 
 jarvis	a-pilot-is-attackig-your-target.wav	misc	misc	a pilot is attackig your target	filename
 jarvis	cluster-missile-flight-stablizers-improved.wav	misc	misc	cluster missile flight stablizers improved	filename
 jarvis	dash-capacity-increased.wav	misc	misc	dash capacity increased	filename
-jarvis	electicsmokedur.wav	misc	misc	electicsmokedur	stt-needed
+jarvis	electicsmokedur.wav	misc	misc	electric smoke duration extended	stt
 jarvis	explosive-titan-punch-active.wav	misc	misc	explosive titan punch active	filename
 jarvis	friendly-pilot-has-detached-from-your-titan.wav	misc	misc	friendly pilot has detached from your titan	filename
 jarvis	friendly-pilot-has-left-your-titan.wav	misc	misc	friendly pilot has left your titan	filename
@@ -183,7 +183,7 @@ legion	you-are-outnumbered-by-multi-titqans-advise-aggressive-sustatined-counter
 monarch	engagingtitan.wav	attack	attack	engagingtitan	filename
 monarch	moving-in-to-kill.wav	attack	attack	moving in to kill	filename
 monarch	pilotengagingenemytitan.wav	attack	attack	pilotengagingenemytitan	filename
-monarch	x016armedtokill.wav	attack	attack	x016armedtokill	stt-needed
+monarch	x016armedtokill.wav	attack	attack	XO-16 armed to kill	stt
 monarch	upgrade-core-maximum-power.wav	core	core	upgrade core maximum power	filename
 monarch	upgrade-core-ready.wav	core	core	upgrade core ready	filename
 monarch	upgrade-core-ready2.wav	core	core	upgrade core ready2	filename
@@ -257,10 +257,10 @@ portal	hardware-remove.wav	exit	exit	hardware remove	filename
 portal	logoff.wav	exit	exit	logoff	filename
 portal	recycle.wav	exit	exit	recycle	filename
 portal	shutdown.wav	exit	exit	shutdown	filename
-portal	asterisk.wav	follow	follow	asterisk	stt-needed
+portal	asterisk.wav	follow	follow	(macOS asterisk alert tone)	sfx
 portal	navigate.wav	follow	follow	navigate	filename
 portal	notify.wav	follow	follow	notify	filename
-portal	asterisk.wav	misc	misc	asterisk	stt-needed
+portal	asterisk.wav	misc	misc	(macOS asterisk alert tone)	sfx
 portal	battery-critical.wav	misc	misc	battery critical	filename
 portal	battery-low.wav	misc	misc	battery low	filename
 portal	critical-error.wav	misc	misc	critical error	filename

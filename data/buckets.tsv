@@ -59,7 +59,7 @@ ion	it-is-good-you-returned-saftey-piot	enter
 ion	pilot-mode-online	enter
 ion	transfering-controls-to-manual-operation	enter
 ion	trasnfering-controls-to-pilot	enter
-ion	asfa	misc
+ion	asfa	damage
 ion	enemy-pilot-attacking	warn
 ion	warning-2-enemy-pilot-attacking	warn
 ion	warning-2	warn

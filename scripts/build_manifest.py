@@ -37,6 +37,7 @@ DATA = os.path.join(REPO, "data")
 # (titan, slug) -> corrected bucket. Only files that MOVE.
 OVERRIDES = {
     ("ion", "advice-defensive-system"): "damage",
+    ("ion", "asfa"): "damage",  # STT: "severe damage..." — see TRANSCRIBED
     ("ion", "enemy-pilot-attacking"): "warn",
     ("ion", "trasnfering-controls-to-pilot"): "enter",
 
@@ -101,13 +102,18 @@ OVERRIDES = {
     ("tone", "warning-major-damage-sustained"): "damage",
 }
 
-# Opaque / non-speech: filename carries no usable transcript. Real STT needed.
-STT_NEEDED = {
-    ("bt", "mechsounds1"), ("bt", "mechsounds2"), ("bt", "mechsounds3"), ("bt", "mechsounds4"),
-    ("ion", "asfa"),
-    ("jarvis", "electicsmokedur"),
-    ("monarch", "x016armedtokill"),
-    ("portal", "asterisk"),
+# Files whose filename is NOT the transcript — resolved by whisper-cpp (ggml-base.en/small.en).
+# (titan, slug) -> (source, real_transcript). source: "sfx" = non-speech, stays in misc;
+# "stt" = real speech, transcript below is ground truth (bucket set via OVERRIDES above).
+TRANSCRIBED = {
+    ("bt", "mechsounds1"): ("sfx", "(dramatic music / mech SFX)"),
+    ("bt", "mechsounds2"): ("sfx", "(dramatic music / mech SFX)"),
+    ("bt", "mechsounds3"): ("sfx", "(dramatic music / mech SFX)"),
+    ("bt", "mechsounds4"): ("sfx", "(dramatic music / mech SFX)"),
+    ("portal", "asterisk"): ("sfx", "(macOS asterisk alert tone)"),
+    ("ion", "asfa"): ("stt", "severe damage"),
+    ("jarvis", "electicsmokedur"): ("stt", "electric smoke duration extended"),
+    ("monarch", "x016armedtokill"): ("stt", "XO-16 armed to kill"),
 }
 
 
@@ -131,8 +137,11 @@ def walk():
                 slug = fn[:-4]
                 cur = bucket
                 prop = OVERRIDES.get((titan, slug), cur)
-                src = "stt-needed" if (titan, slug) in STT_NEEDED else "filename"
-                rows.append((titan, fn, slug, cur, prop, transcript(slug), src))
+                if (titan, slug) in TRANSCRIBED:
+                    src, tr = TRANSCRIBED[(titan, slug)]
+                else:
+                    src, tr = "filename", transcript(slug)
+                rows.append((titan, fn, slug, cur, prop, tr, src))
     return rows
 
 
