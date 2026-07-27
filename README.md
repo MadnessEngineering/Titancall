@@ -148,6 +148,43 @@ attack <- events: working
 and re-runs `build_manifest.py --apply`, which physically moves the file and regenerates
 `data/buckets.tsv`. Nothing is hidden in a database: `git diff data/` shows exactly what you re-bucketed.
 
+## Bulk re-sorting — `titancall review`
+
+For sorting a lot of lines at once (a Titan with 27 clips dumped in `misc`), the console is the slow
+way. Dump the whole library to a spreadsheet instead:
+
+```sh
+titancall review          # -> data/review.csv, one row per wav, plus a gap report
+# edit the new_bucket column in Numbers/Excel/vim; leave rows you don't care about alone
+titancall review apply    # folds edits into overrides.tsv, moves the wavs, regenerates the CSV
+```
+
+```csv
+titan,transcript,bucket,new_bucket,file
+jarvis,friendly pilot on board,misc,enter,friendly-pilot-on-board.wav
+jarvis,friendly pilot has left your titan,misc,exit,friendly-pilot-has-left-your-titan.wav
+jarvis,titan burn card enabled,misc,misc,titan-burn-card-enabled.wav
+```
+
+`apply` validates every row first — an unknown bucket or a filename that no longer exists aborts the
+whole import with line numbers and changes nothing. Same authority as the console: it writes
+`data/overrides.tsv`, which is merged *over* the curated `OVERRIDES` dict in `build_manifest.py`.
+
+The gap report tells you what re-sorting **can't** fix — buckets where a voice simply has no clip:
+
+```
+gaps — buckets with no clips for that voice (these fall back to misc today):
+  jarvis     down guard follow exit
+  portal     eject core guard attack
+  northstar  down
+```
+
+Nothing in `misc` becomes a "guard mode" line if Jarvis never says one. Those buckets currently fall
+back to a random `misc` clip, so Jarvis firing `done` may announce *"your thriple threat wil now fire
+magnetic gernades."* Point the event at a **group** to cover it (`titancall group set takedown
+down,attack,warn` + `titancall alias done takedown`) — group members are narrowed per-voice, so a
+Titan lacking one member just draws from the others.
+
 ## Playback log
 
 Every played line is appended to `~/.local/share/titancall/log` (tab-separated:
@@ -186,6 +223,7 @@ titancall lines [event]
 titancall alias [<event> <bucket|group>]
 titancall group list | show <n> | set <n> <b1,b2,...> | rm <n>
 titancall buckets            bucket names, one per line
+titancall review [apply]     whole library -> data/review.csv for hand-sorting; apply folds it back
 titancall normalize          re-bucket + rename installed wavs
 titancall config | test [event]
 titancall config unset <alias.x|group.x|volume.x|cooldown.x>

@@ -11,6 +11,12 @@ This script:
        data/buckets.tsv   — authoritative titan\tslug\tbucket  (consumed by `titancall normalize`)
   5. with --apply, moves each wav into its proposed bucket dir
 
+Bulk hand-sorting workflow:
+  python3 scripts/build_manifest.py --review          # -> data/review.csv (+ a gap report)
+  # edit the new_bucket column in a spreadsheet or editor
+  python3 scripts/build_manifest.py --import-review   # folds edits into overrides.tsv, moves wavs
+Also reachable as `titancall review` / `titancall review apply`.
+
 OVERRIDES key = (titan, slug) where slug is the filename without .wav.
 Only list files whose bucket should CHANGE — everything else keeps its current bucket.
 
@@ -168,12 +174,89 @@ def walk():
     return rows
 
 
+REVIEW_CSV = os.path.join(DATA, "review.csv")
+BUCKETS = ["eject", "core", "down", "damage", "warn", "enter",
+           "guard", "follow", "attack", "exit", "misc"]
+
+
+def export_review(rows):
+    """Write data/review.csv — one row per wav, `new_bucket` is the column you edit."""
+    import csv
+    with open(REVIEW_CSV, "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["titan", "transcript", "bucket", "new_bucket", "file"])
+        for t, fn, slug, cur, prop, tr, src in rows:
+            w.writerow([t, tr, prop, prop, fn])
+    counts = {}
+    for t, fn, slug, cur, prop, tr, src in rows:
+        counts.setdefault(t, {}).setdefault(prop, 0)
+        counts[t][prop] += 1
+    print(f"wrote {REVIEW_CSV}  ({len(rows)} rows)")
+    print(f"edit the new_bucket column, then: python3 scripts/build_manifest.py --import-review")
+    print(f"valid buckets: {' '.join(BUCKETS)}\n")
+    print("gaps — buckets with no clips for that voice (these fall back to misc today):")
+    for t in sorted(counts):
+        missing = [b for b in BUCKETS if b != "misc" and not counts[t].get(b)]
+        print(f"  {t:<10} {' '.join(missing) if missing else '(complete)'}")
+
+
+def import_review(rows):
+    """Read edited data/review.csv, fold changes into data/overrides.tsv. Returns True if anything changed."""
+    import csv
+    if not os.path.exists(REVIEW_CSV):
+        sys.exit(f"no {REVIEW_CSV} — run --review first")
+    by_file = {(t, fn): prop for t, fn, slug, cur, prop, tr, src in rows}
+    ov, changed, bad = user_overrides(), [], []
+    with open(REVIEW_CSV, newline="") as f:
+        for i, r in enumerate(csv.DictReader(f), start=2):
+            titan, fn = (r.get("titan") or "").strip(), (r.get("file") or "").strip()
+            new = (r.get("new_bucket") or "").strip().lower()
+            if not titan or not fn:
+                continue
+            if new not in BUCKETS:
+                bad.append(f"  line {i}: {titan}/{fn} -> '{new}'")
+                continue
+            if (titan, fn) not in by_file:
+                bad.append(f"  line {i}: no such wav {titan}/{fn}")
+                continue
+            if new != by_file[(titan, fn)]:
+                slug = fn[:-4] if fn.lower().endswith(".wav") else fn
+                ov[(titan, slug)] = new
+                changed.append((titan, by_file[(titan, fn)], new, fn))
+    if bad:
+        sys.exit("review.csv has %d bad row(s) — nothing applied:\n%s\nvalid buckets: %s"
+                 % (len(bad), "\n".join(bad), " ".join(BUCKETS)))
+    if not changed:
+        print("review.csv matches the library — nothing to change")
+        return False
+    with open(USER_OVERRIDES, "w") as f:
+        f.write("# titan\tslug\tbucket — from `--import-review` / `titancall ui`; merged OVER the\n"
+                "# curated OVERRIDES dict in build_manifest.py, so these always win.\n")
+        for (titan, slug), bucket in sorted(ov.items()):
+            f.write(f"{titan}\t{slug}\t{bucket}\n")
+    print(f"{len(changed)} reclassification(s) from review.csv:")
+    for titan, old, new, fn in changed:
+        print(f"  {titan}: {old} -> {new}  {fn}")
+    return True
+
+
 def main():
     apply = "--apply" in sys.argv
+    review = "--review" in sys.argv
+    imp = "--import-review" in sys.argv
     if not os.path.isdir(SOUNDS):
         sys.exit(f"no sounds dir at {SOUNDS}")
     os.makedirs(DATA, exist_ok=True)
     rows = walk()
+
+    if review:
+        export_review(rows)
+        return
+    if imp:
+        if not import_review(rows):
+            return
+        rows = walk()        # re-read: overrides.tsv just changed
+        apply = True         # importing your edits means you want them applied
 
     with open(os.path.join(DATA, "manifest.tsv"), "w") as f:
         f.write("titan\tfile\tcurrent_bucket\tproposed_bucket\ttranscript\tsource\n")
@@ -207,6 +290,8 @@ def main():
             os.rename(src, dst)
             moved += 1
         print(f"applied: moved {moved} files")
+        if imp:
+            export_review(walk())      # keep review.csv in step with the library
     else:
         print("dry run — pass --apply to move files")
 

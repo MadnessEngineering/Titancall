@@ -459,6 +459,17 @@ cmd_playfile() { # playfile <wav> [event] — play one exact file: preview for `
   play_file "$f" "${2:-}"
 }
 
+cmd_review() { # review [apply] — dump the whole library to an editable CSV, then fold edits back
+  local mf="$REPO_DIR/scripts/build_manifest.py"
+  [ -f "$mf" ] || die "missing $mf"
+  command -v python3 >/dev/null 2>&1 || die "titancall review needs python3 (playback does not)"
+  case "${1:-}" in
+    ""|export|show) python3 "$mf" --review ;;
+    apply|import)   python3 "$mf" --import-review ;;
+    *) die "usage: titancall review [apply]" ;;
+  esac
+}
+
 cmd_ui() { # curses console for wiring wavs -> buckets -> groups -> events (the only python3 path)
   local ui="$REPO_DIR/scripts/titancall_ui.py"
   [ -f "$ui" ] || die "missing $ui"
@@ -467,7 +478,7 @@ cmd_ui() { # curses console for wiring wavs -> buckets -> groups -> events (the 
 }
 
 # ---- shell completion (thin bash/zsh scripts call `titancall __complete`; candidates stay live) ----
-SUBCOMMANDS="play random whoami roster titan output volume cooldown lines normalize level config alias group buckets test log ui on off toggle status help"
+SUBCOMMANDS="play random whoami roster titan output volume cooldown lines normalize level config alias group buckets review test log ui on off toggle status help"
 events()       { grep -E '^alias\.' "$CONFIG" 2>/dev/null | sed -E 's/^alias\.([^=]+)=.*/\1/'; }
 device_names() { have_switch && SwitchAudioSource -a -t output 2>/dev/null; }
 
@@ -497,6 +508,8 @@ cmd_complete() { # args = completed words before the cursor; emit newline candid
       if [ "$n" -eq 1 ]; then printf 'list\nshow\nset\nrm\n'
       elif { [ "$2" = show ] || [ "$2" = rm ]; } && [ "$n" -eq 2 ]; then group_names
       elif [ "$2" = set ] && [ "$n" -ge 3 ]; then bucket_names; fi ;;
+    review)
+      [ "$n" -eq 1 ] && printf 'apply\n' ;;
     log)
       [ "$n" -eq 1 ] && printf 'on\noff\nclear\n' ;;
     *) : ;;                                       # volume/cooldown freeform; on/off/etc. terminal
@@ -526,6 +539,8 @@ titancall — TF2 Titan voice notifications, one voice per project
                                named bucket sets; an alias on a group draws from any member
   titancall buckets            list bucket names (machine-readable)
   titancall ui                 curses console: wire wavs -> buckets -> groups -> events (needs python3)
+  titancall review [apply]     dump whole library to data/review.csv (+gap report); 'apply' folds
+                               your edited new_bucket column back and moves the wavs
   titancall lines [event]
   titancall normalize          bucket+rename installed wavs into <titan>/<event>/
   titancall level              loudness-normalize all wavs to config 'loudness' LUFS (one-time, needs ffmpeg)
@@ -562,6 +577,7 @@ main() {
     alias)      cmd_alias "$@" ;;
     group)      cmd_group "$@" ;;
     buckets)    cmd_buckets ;;
+    review)     cmd_review "$@" ;;
     playfile)   cmd_playfile "$@" ;;
     ui)         cmd_ui "$@" ;;
     test)       cmd_test "$@" ;;

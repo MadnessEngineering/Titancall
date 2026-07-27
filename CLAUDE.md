@@ -76,6 +76,13 @@ through its `~/.local/bin` symlink to find `data/buckets.tsv`.
 The voice library (`$TITANCALL_HOME/sounds`, ~400M) is NOT in git — only `data/*.tsv` is. Regenerating
 the manifest requires the library present; `build_manifest.py` walks it directly.
 
+**Three ways in, one authority.** All bucket reassignment converges on `data/buckets.tsv`:
+the curated `OVERRIDES` dict (hand-edited, for STT/semantic calls), `data/overrides.tsv` (machine-written,
+merged *over* the dict — so it always wins), and the two front-ends that write it: `titancall ui` (move
+one/a few, with audition) and `titancall review` → `data/review.csv` → `titancall review apply` (bulk
+hand-sorting in a spreadsheet). `--import-review` validates every row before touching anything: an
+unknown bucket or a stale filename aborts the whole import. Prefer these over hand-editing `data/*.tsv`.
+
 **Titan identity precedence** (`resolve_titan`, sets globals `ACTIVE_TITAN`/`ACTIVE_SRC` in the
 current shell — no subshell, so callers read the source):
 `$TITANCALL_TITAN` → nearest `./.titan` walking up → registry by project path → claim next free
