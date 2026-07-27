@@ -32,7 +32,10 @@ EVENTS = {
     "SubagentStop":       "follow",   # subagent reports back
     "PostToolUseFailure": "error",    # critical damage sustained
     "PermissionRequest":  "warn",     # warning
+    "TaskCreated":        "working",  # engaging titan — work begins (bookend to TaskCompleted)
     "TaskCompleted":      "guard",    # guard mode — holding & watching results until pilot returns
+    "Elicitation":        "notify",   # following your lead — MCP server requests your input
+    "PostCompact":        "start",    # all systems nominal — back online after compaction
     "SessionEnd":         "exit",     # disengage
 }
 want = {ev: f"{tc} {te} &" for ev, te in EVENTS.items()}

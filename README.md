@@ -81,7 +81,10 @@ Run `./install-hooks.sh` to wire these into `~/.claude/settings.json` (idempoten
 | SubagentStop       | follow  | "Solid copy" |
 | PostToolUseFailure | error   | "Critical damage sustained" |
 | PermissionRequest  | warn    | "Warning" |
+| TaskCreated        | working | "Engaging Titan" (work begins) |
 | TaskCompleted      | guard   | "Guard mode activated" (holding results until you return) |
+| Elicitation        | notify  | "Following your lead, Pilot" (MCP asks for input) |
+| PostCompact        | start   | "Pilot mode online" (back online after compaction) |
 | SessionEnd         | exit    | "Disengage" |
 
 `PreToolUse`/`PostToolUse` are intentionally excluded — they fire on every tool call. Edit the `EVENTS`
