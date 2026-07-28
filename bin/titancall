@@ -56,7 +56,19 @@ die()  { err "$*"; exit 1; }
 
 ensure_config() { [ -f "$CONFIG" ] && return 0; mkdir -p "$CONFIG_DIR"; printf '%s\n' "$DEFAULT_CONFIG" > "$CONFIG"; }
 
-cfg() { local k="$1" d="${2:-}" v; v=$(grep -E "^${k}=" "$CONFIG" 2>/dev/null | head -1 | cut -d= -f2-); [ -n "$v" ] && printf '%s' "$v" || printf '%s' "$d"; }
+_OVERLAY=""; _OVERLAY_RESOLVED=""
+overlay_path() { # memoized: this project's .titan (config overlay), or empty. cfg reads it first.
+  [ -n "$_OVERLAY_RESOLVED" ] && { printf '%s' "$_OVERLAY"; return; }
+  _OVERLAY_RESOLVED=1; local d; d=$(find_dotfile_dir) && _OVERLAY="$d/.titan"; printf '%s' "$_OVERLAY"
+}
+
+cfg() { # key [default] — project .titan overlay wins over global CONFIG. Skip the bare titan line.
+  local k="$1" d="${2:-}" ov v
+  ov=$(overlay_path)
+  [ -n "$ov" ] && v=$(grep -E "^${k}=" "$ov" 2>/dev/null | head -1 | cut -d= -f2-)
+  [ -z "${v:-}" ] && v=$(grep -E "^${k}=" "$CONFIG" 2>/dev/null | head -1 | cut -d= -f2-)
+  [ -n "${v:-}" ] && printf '%s' "$v" || printf '%s' "$d"
+}
 
 cfg_set() {
   local k="$1" v="$2" tmp; ensure_config; tmp="$CONFIG.tmp.$$"
@@ -97,7 +109,38 @@ find_dotfile_dir() {
   done
   return 1
 }
-read_dotfile() { local d; d=$(find_dotfile_dir "${1:-$PWD}") || return 1; head -1 "$d/.titan" | tr -d '[:space:]'; }
+# .titan format: first non-blank/non-# line WITHOUT '=' is the titan; k=v lines are the config overlay.
+read_dotfile() { # -> titan name from nearest .titan, or rc 1
+  local d f; d=$(find_dotfile_dir "${1:-$PWD}") || return 1; f="$d/.titan"
+  awk '/^[[:space:]]*#/ || /^[[:space:]]*$/ {next} /=/ {next} {gsub(/[[:space:]]/,"",$0); print; exit}' "$f"
+}
+
+dotfile_target() { # path to the .titan we should WRITE — existing one, else at project_root
+  local d; d=$(find_dotfile_dir) && { printf '%s/.titan' "$d"; return; }
+  printf '%s/.titan' "$(project_root)"
+}
+dotfile_titan() { # titan token currently in a .titan file (empty if none)
+  [ -f "$1" ] || return 0
+  awk '/^[[:space:]]*#/ || /^[[:space:]]*$/ {next} /=/ {next} {gsub(/[[:space:]]/,"",$0); print; exit}' "$1"
+}
+dotfile_overlay_lines() { # the k=v overlay lines of a .titan (no titan token, no blanks/comments)
+  [ -f "$1" ] || return 0
+  grep -E '^[[:space:]]*[A-Za-z0-9_.-]+=' "$1" 2>/dev/null | grep -vE '^[[:space:]]*titan=' || true
+}
+dotfile_write_titan() { # name path — set/replace titan token, PRESERVE overlay k=v lines. atomic.
+  local name="$1" path="$2" tmp="$2.tmp.$$"
+  { printf '%s\n' "$name"; [ -f "$path" ] && dotfile_overlay_lines "$path"; } > "$tmp" && mv "$tmp" "$path"
+}
+dotfile_set() { # key val — set overlay entry in this project's .titan, preserving titan line. atomic.
+  local k="$1" v="$2" f t tmp; f=$(dotfile_target); tmp="$f.tmp.$$"
+  t=$(dotfile_titan "$f"); [ -n "$t" ] || t=$(active_titan)
+  { printf '%s\n' "$t"; { dotfile_overlay_lines "$f" | grep -vE "^${k}="; printf '%s=%s\n' "$k" "$v"; }; } > "$tmp" && mv "$tmp" "$f"
+}
+dotfile_unset() { # key — drop an overlay entry; no-op when absent
+  local k="$1" f t tmp; f=$(dotfile_target); [ -f "$f" ] || return 0; tmp="$f.tmp.$$"
+  t=$(dotfile_titan "$f")
+  { printf '%s\n' "$t"; dotfile_overlay_lines "$f" | { grep -vE "^${k}=" || true; }; } > "$tmp" && mv "$tmp" "$f"
+}
 
 project_root() {
   local d
@@ -135,7 +178,7 @@ claim_titan() { # path -> next unused titan (else least-used), persist .titan + 
     [ -z "$chosen" ] && chosen="${all[0]}"
   fi
   reg_write "$chosen" "$path"
-  [ -d "$path" ] && echo "$chosen" > "$path/.titan" 2>/dev/null
+  [ -d "$path" ] && dotfile_write_titan "$chosen" "$path/.titan" 2>/dev/null
   printf '%s' "$chosen"
 }
 
@@ -259,6 +302,11 @@ cmd_whoami() {
   resolve_titan
   echo "titan:   $ACTIVE_TITAN  (via $ACTIVE_SRC)"
   echo "project: $(project_root)"
+  local ov n; ov=$(overlay_path)
+  if [ -n "$ov" ] && [ -f "$ov" ]; then
+    n=$(dotfile_overlay_lines "$ov" | grep -c . || true)
+    [ "${n:-0}" -gt 0 ] && echo "overlay: $ov  ($n override$([ "$n" = 1 ] || echo s))"
+  fi
 }
 
 cmd_roster() {
@@ -273,7 +321,7 @@ cmd_titan() {
     here)
       shift; [ -n "${1:-}" ] || die "usage: titancall titan here <name>"
       [ -d "$SOUNDS/$1" ] || die "unknown titan '$1' (titancall titan list)"
-      local root; root=$(project_root); echo "$1" > "$root/.titan"; reg_write "$1" "$root"
+      local root; root=$(project_root); dotfile_write_titan "$1" "$root/.titan"; reg_write "$1" "$root"
       echo "registered $root as titan: $1"; confirm "$1" enter ;;
     *)
       [ -d "$SOUNDS/$1" ] || die "unknown titan '$1' (titancall titan list)"
@@ -330,7 +378,16 @@ cmd_config() {
   ensure_config
   local sub="${1:-}" key="${2:-}"
   case "$sub" in
-    "")  echo "# $CONFIG"; cat "$CONFIG" ;;
+    "")
+      local ov; ov=$(overlay_path)
+      if [ -z "$ov" ] || [ ! -f "$ov" ]; then echo "# $CONFIG"; cat "$CONFIG"; return; fi
+      echo "# $CONFIG  (+ overlay $ov)   [P]=project [G]=global, project wins"
+      { grep -oE '^[A-Za-z0-9_.-]+=' "$CONFIG" 2>/dev/null; dotfile_overlay_lines "$ov" | grep -oE '^[A-Za-z0-9_.-]+='; } \
+        | sed 's/=$//' | sort -u | while IFS= read -r k; do
+          [ -n "$k" ] || continue
+          if dotfile_overlay_lines "$ov" | grep -qE "^${k}="; then printf '%s=%s\t[P]\n' "$k" "$(cfg "$k")"
+          else printf '%s=%s\t[G]\n' "$k" "$(cfg "$k")"; fi
+        done | column -t -s "$(printf '\t')" ;;
     get) [ -n "$key" ] || die "usage: titancall config get <key>"; cfg "$key"; echo ;;
     set)
       [ -n "$key" ] && [ $# -ge 3 ] || die "usage: titancall config set <key> <val>"
@@ -357,6 +414,40 @@ cmd_alias() { # list alias.* mappings, or set alias.<event>=<bucket|group> (targ
   [ -n "$target" ] || die "usage: titancall alias <event> <bucket|group>   (targets: $targets)"
   list_has "$target" "$(target_names)" || die "unknown target '$target' (valid: $targets)"
   cfg_set "alias.$event" "$target"; echo "alias: $event -> $target"
+}
+
+cmd_project() { # per-project config overlay written into this project's .titan (wins over global)
+  local sub="${1:-show}" f targets
+  case "$sub" in
+    show|"")
+      f=$(dotfile_target)
+      echo "titan:   $(active_titan)"
+      echo "overlay: $f"
+      if [ -f "$f" ] && dotfile_overlay_lines "$f" | grep -q .; then dotfile_overlay_lines "$f"
+      else echo "(no overrides — titancall project alias|group|set ...)"; fi ;;
+    alias)
+      local event="${2:-}" target="${3:-}"; targets=$(target_names | paste -sd' ' -)
+      [ -n "$event" ] && [ -n "$target" ] || die "usage: titancall project alias <event> <bucket|group>   (targets: $targets)"
+      list_has "$target" "$(target_names)" || die "unknown target '$target' (valid: $targets)"
+      dotfile_set "alias.$event" "$target"; echo "project alias: $event -> $target  ($(dotfile_target))" ;;
+    group)
+      local name="${2:-}" members="${3:-}" b bad=()
+      [ -n "$name" ] && [ -n "$members" ] || die "usage: titancall project group <name> <b1,b2,...>"
+      for b in $(printf '%s' "$members" | tr ',' ' '); do list_has "$b" "$(bucket_names)" || bad+=("$b"); done
+      [ ${#bad[@]} -eq 0 ] || die "unknown bucket(s): ${bad[*]}"
+      dotfile_set "group.$name" "$members"; echo "project group: $name -> $members" ;;
+    set)
+      local key="${2:-}" val="${3:-}"
+      [ -n "$key" ] && [ $# -ge 3 ] || die "usage: titancall project set <key> <val>"
+      [ "$key" = titan ] && die "set the project titan with 'titancall titan here <name>'"
+      key_ok "$key" || die "unknown key '$key' (valid: $CONFIG_KEYS, alias.*, volume.*, cooldown.*, group.*)"
+      dotfile_set "$key" "$val"; echo "project $key=$val" ;;
+    unset)
+      local key="${2:-}"
+      [ -n "$key" ] || die "usage: titancall project unset <key>"
+      dotfile_unset "$key"; echo "project unset $key" ;;
+    *) die "usage: titancall project [show | alias <e> <t> | group <n> <b,..> | set <k> <v> | unset <k>]" ;;
+  esac
 }
 
 cmd_group() { # named bucket sets: an alias pointing at a group draws from any member bucket
@@ -479,7 +570,7 @@ cmd_ui() { # curses console for wiring wavs -> buckets -> groups -> events (the 
 }
 
 # ---- shell completion (thin bash/zsh scripts call `titancall __complete`; candidates stay live) ----
-SUBCOMMANDS="play random whoami roster titan output volume cooldown lines normalize level config alias group buckets review test log ui on off toggle status help"
+SUBCOMMANDS="play random whoami roster titan output volume cooldown lines normalize level config alias group project buckets review test log ui on off toggle status help"
 events()       { grep -E '^alias\.' "$CONFIG" 2>/dev/null | sed -E 's/^alias\.([^=]+)=.*/\1/'; }
 device_names() { have_switch && SwitchAudioSource -a -t output 2>/dev/null; }
 
@@ -505,6 +596,15 @@ cmd_complete() { # args = completed words before the cursor; emit newline candid
     alias)
       if [ "$n" -eq 1 ]; then events
       elif [ "$n" -eq 2 ]; then target_names; fi ;;
+    project)
+      if [ "$n" -eq 1 ]; then printf 'show\nalias\ngroup\nset\nunset\n'
+      elif [ "$2" = alias ] && [ "$n" -eq 2 ]; then events
+      elif [ "$2" = alias ] && [ "$n" -eq 3 ]; then target_names
+      elif [ "$2" = group ] && [ "$n" -eq 3 ]; then bucket_names
+      elif { [ "$2" = set ] || [ "$2" = unset ]; } && [ "$n" -eq 2 ]; then
+        printf '%s\n' $CONFIG_KEYS
+        local e; for e in $(events); do printf 'alias.%s\nvolume.%s\ncooldown.%s\n' "$e" "$e" "$e"; done
+      fi ;;
     group)
       if [ "$n" -eq 1 ]; then printf 'list\nshow\nset\nrm\n'
       elif { [ "$2" = show ] || [ "$2" = rm ]; } && [ "$n" -eq 2 ]; then group_names
@@ -538,6 +638,8 @@ titancall — TF2 Titan voice notifications, one voice per project
   titancall alias [<event> <bucket|group>]  list or remap event->bucket/group
   titancall group [list | show <n> | set <n> <b1,b2,...> | rm <n>]
                                named bucket sets; an alias on a group draws from any member
+  titancall project [show | alias <e> <t> | group <n> <b,..> | set <k> <v> | unset <k>]
+                               per-project overrides written into ./.titan (win over global config)
   titancall buckets            list bucket names (machine-readable)
   titancall ui                 curses console: wire wavs -> buckets -> groups -> events (needs python3)
   titancall review [apply]     dump whole library to data/review.csv (+gap report); 'apply' folds
@@ -577,6 +679,7 @@ main() {
     config)     cmd_config "$@" ;;
     alias)      cmd_alias "$@" ;;
     group)      cmd_group "$@" ;;
+    project)    cmd_project "$@" ;;
     buckets)    cmd_buckets ;;
     review)     cmd_review "$@" ;;
     playfile)   cmd_playfile "$@" ;;

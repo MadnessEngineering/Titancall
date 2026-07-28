@@ -42,7 +42,9 @@ For anything that *writes* (moves, groups, aliases), point it at a throwaway lib
 
 ## Runtime state (all outside the repo)
 
-- `~/.config/titancall/config` — `key=value` lines; seeded from `DEFAULT_CONFIG` on first run.
+- `~/.config/titancall/config` — global `key=value` lines; seeded from `DEFAULT_CONFIG` on first run.
+- `<project>/.titan` — IN the project (committable). Line 1 = the titan name; any `key=value` lines
+  below are a per-project config overlay that wins over the global config (see `cmd_project`).
 - `~/.config/titancall/registry` — TSV `titan \t project_path \t last_fired_iso`.
 - `~/.local/share/titancall/sounds/<titan>/<bucket>/*.wav` — voice library (~400M, NOT in git).
 - `~/.local/share/titancall/state/<titan>.last` — epoch of last play, for cooldown.
@@ -102,6 +104,16 @@ changes) deliberately bypass cooldown but still respect the `enabled` mute gate.
 **Config keys** are gated by `key_ok`: known scalars (`CONFIG_KEYS`) plus `alias.*`, `volume.*`,
 `cooldown.*`, `group.*` namespaces. `cfg`/`cfg_set`/`cfg_unset` are grep/sed over the flat file.
 `config unset` only accepts the namespaced keys — scalars have defaults worth keeping.
+
+**Per-project overrides layer through `cfg`.** `cfg key [default]` reads the project `.titan` overlay
+first (memoized `overlay_path`, the nearest `.titan` walking up), then the global config, then the
+default — so `resolve_bucket`, `group_buckets`, `play_file` (volume) and `cooldown_ok` all get
+per-project behavior for free, no routing-function changes. Writes go through `cmd_project`
+(`titancall project alias|group|set|unset|show`) into the same `.titan` via `dotfile_set`/`dotfile_unset`,
+which always preserve the titan on line 1 (as do `claim_titan`/`titan here`, now via `dotfile_write_titan`
+instead of clobbering the file). The `titan` key is identity, not an overlay entry — set it with
+`titan here`, and the overlay reader (`dotfile_overlay_lines`) explicitly excludes it. `titancall config`
+prints the merged view tagged `[P]`/`[G]` when an overlay is active.
 
 **The console (`titancall ui`) writes through the CLI, never around it.** `scripts/titancall_ui.py`
 is a curses front-end over four layers; every mutation shells back out to bash so validation lives in
