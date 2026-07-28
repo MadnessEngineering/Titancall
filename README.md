@@ -73,6 +73,26 @@ from the group instead of falling back to `misc`.
 `titan here <name>` / `titan <name>` greet you in that voice; `output <device>` chirps **on the new device**
 so you confirm routing; `volume <n>` plays at the new level; `on` proves sound is back.
 
+## How routing works
+
+One fire, three decisions: which titan speaks, which bucket the event lands in, which wav gets
+picked. Callers speak dev-words, sound folders speak titan-words, and `alias.*` (optionally
+through a `group.*`) bridges the two:
+
+```mermaid
+flowchart LR
+    A["hook or shell: titancall done"] --> B(["event: done"])
+    B --> C["alias.done=down (a group target fans out to one random member the titan can voice)"]
+    C --> D(["bucket: down"])
+    D --> E["pick_wav: random wav in sounds/ion/down/"]
+```
+
+An event with no alias falls through as a bucket name, so `titancall attack` plays raw buckets
+directly. A project's `.titan` file can also carry `key=value` overrides that beat the global
+config (`titancall project`). The full model — titan identity precedence, the mute/cooldown
+gates in `cmd_play`, bucketing authority, and the `.titan` overlay — is diagrammed with worked
+traces in **[docs/routing.md](docs/routing.md)**.
+
 ## Per-project identity
 
 Active Titan is resolved by precedence:
