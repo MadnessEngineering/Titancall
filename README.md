@@ -86,6 +86,11 @@ $TITANCALL_TITAN  >  nearest ./.titan (walks up)  >  registry (by project path) 
 - `titancall whoami` — show this project's Titan and *why*.
 - `titancall titan here <name>` — pin a project deliberately.
 - `titancall roster` — table of every project → Titan → last fired.
+- `titancall roster prune [-n]` — forget projects whose directory is gone (`-n` previews). Freed Titans
+  become claimable again.
+- `titancall roster forget [<path>|<titan>]` — forget one row; bare = the current project. A Titan name
+  that holds several projects is refused (it lists them) — name the path instead. The project's `.titan`
+  is left alone, so a still-existing project re-registers on its next fire.
 
 Because Claude Code runs hooks in the project's directory, a **single** global hook gives every agent its
 own voice automatically — no per-project hook config.

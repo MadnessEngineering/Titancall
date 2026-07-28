@@ -92,6 +92,15 @@ Titan. `project_root` prefers `$CLAUDE_PROJECT_DIR`, then a `.titan` dir, then g
 PWD — this is why one global hook gives each project its own voice. `claim_titan` grabs the first
 unused Titan (least-used once all 9 are taken) and persists both `./.titan` and the registry.
 
+**Registry removal** is `reg_forget <titan|""> <path...>` (copy → per-path awk filter → `mv`; rc 1 when
+nothing matched), driven by `roster prune` (drops rows whose `$2` isn't a dir; `-n` previews) and
+`roster forget [<path>|<titan>|bare=project_root]`. An empty titan arg means "every row for this path",
+which is why path-mode drops all of them and titan-mode drops only that one pair — several titans can
+share a path. An ambiguous titan (>1 row) exits 2 listing the candidates rather than guessing. Nothing
+touches the project's `.titan`: identity is committable project state, so a live project simply
+re-registers on its next fire — only the registry row is transient. Freed titans need no bookkeeping,
+`reg_used`/`claim_titan` read the registry live.
+
 **Playback is fire-and-forget.** `play_file` detaches into a backgrounded subshell with fds closed
 and `disown`s it, so hooks never block. `TITANCALL_WAIT=1` switches to the blocking path
 (`_play_seq`), which is also where device switch/restore happens (switch → afplay → restore prev).

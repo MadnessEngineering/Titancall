@@ -159,6 +159,23 @@ reg_write()  {
   printf '%s\t%s\t%s\n' "$titan" "$path" "$now" >> "$tmp"; mv "$tmp" "$REGISTRY"
 }
 reg_touch()  { local t; t=$(reg_lookup "$1") || return 1; reg_write "$t" "$1"; }
+reg_paths()  { [ -f "$REGISTRY" ] || return 0; awk -F'\t' 'NF{print $2}' "$REGISTRY"; }
+reg_rows()   { # field value -> full rows whose field N equals value
+  [ -f "$REGISTRY" ] || return 0; awk -F'\t' -v n="$1" -v v="$2" '$n==v' "$REGISTRY"; }
+reg_forget() { # <titan|""> path... -> remove those rows (atomic); rc 1 if nothing matched.
+  # empty titan = every row for the path; otherwise only the titan+path row.
+  [ -f "$REGISTRY" ] || return 1
+  local t="$1"; shift
+  local tmp="$REGISTRY.tmp.$$" p before after
+  before=$(wc -l < "$REGISTRY")
+  cp "$REGISTRY" "$tmp"
+  for p in "$@"; do
+    awk -F'\t' -v p="$p" -v t="$t" '!($2==p && (t=="" || $1==t))' "$tmp" > "$tmp.2" && mv "$tmp.2" "$tmp"
+  done
+  after=$(wc -l < "$tmp")
+  mv "$tmp" "$REGISTRY"
+  [ "$before" -gt "$after" ]
+}
 
 LOGFILE="$TITANCALL_HOME/log"        # rows: iso \t event \t titan \t bucket \t wav \t project_path
 log_play() { # event titan bucket wav_path project_path — append one row, or nothing when log=0
@@ -310,8 +327,49 @@ cmd_whoami() {
 }
 
 cmd_roster() {
+  case "${1:-list}" in
+    list|"")
+      [ -f "$REGISTRY" ] && [ -s "$REGISTRY" ] || { echo "(registry empty)"; return; }
+      { printf 'TITAN\tPROJECT\tLAST_FIRED\n'; sort -k1,1 "$REGISTRY"; } | column -t -s "$(printf '\t')" ;;
+    prune)  shift; roster_prune "$@" ;;
+    forget) shift; roster_forget "$@" ;;
+    *) die "usage: titancall roster [prune [-n] | forget [<path>|<titan>]]" ;;
+  esac
+}
+
+roster_prune() { # drop every row whose project dir is gone. -n/--dry-run to preview.
+  local dry=0; case "${1:-}" in -n|--dry-run) dry=1 ;; "") ;; *) die "usage: titancall roster prune [-n]" ;; esac
   [ -f "$REGISTRY" ] && [ -s "$REGISTRY" ] || { echo "(registry empty)"; return; }
-  { printf 'TITAN\tPROJECT\tLAST_FIRED\n'; sort -k1,1 "$REGISTRY"; } | column -t -s "$(printf '\t')"
+  local gone=() titan path rest
+  while IFS=$'\t' read -r titan path rest; do
+    [ -n "${path:-}" ] || continue
+    [ -d "$path" ] || { gone+=("$path"); printf '%s  %s\t%s\n' "$([ "$dry" = 1 ] && echo would-drop || echo dropped)" "$titan" "$path"; }
+  done < "$REGISTRY"
+  [ ${#gone[@]} -eq 0 ] && { echo "nothing to prune ($(wc -l < "$REGISTRY" | tr -d ' ') rows, all present)"; return; }
+  [ "$dry" = 1 ] && return 0
+  reg_forget "" "${gone[@]}" && echo "pruned ${#gone[@]} row(s) — those titans are free again"
+}
+
+roster_forget() { # <path> | <titan> | (bare = current project) -> remove that row
+  local arg="${1:-}" path="" titan="" rows n
+  if [ -z "$arg" ]; then path=$(project_root)
+  elif [ -d "$arg" ] || [ "${arg:0:1}" = / ] || [ "${arg:0:1}" = . ]; then
+    path=$(cd "$arg" 2>/dev/null && pwd) || path="${arg%/}"
+  else
+    rows=$(reg_rows 1 "$arg"); n=$(printf '%s' "$rows" | grep -c . || true)
+    [ "${n:-0}" -eq 0 ] && die "no registry row for titan '$arg' (titancall roster)"
+    if [ "$n" -gt 1 ]; then
+      err "titan '$arg' holds $n projects — name the path:"
+      printf '%s\n' "$rows" | cut -f2 | sed 's/^/  /' >&2; exit 2
+    fi
+    titan="$arg"; path=$(printf '%s' "$rows" | cut -f2)
+  fi
+  local shown="$titan"                          # titan="" => drop every row for that path
+  [ -n "$shown" ] || shown=$(reg_lookup "$path" | paste -sd, -) || die "not in registry: $path"
+  reg_forget "$titan" "$path" || die "not in registry: $path"
+  echo "forgot $shown -> $path"
+  [ -f "$path/.titan" ] && echo "note: $path/.titan still pins '$shown' — it re-registers on next fire (rm it to fully release)"
+  return 0
 }
 
 cmd_titan() {
@@ -583,6 +641,10 @@ cmd_complete() { # args = completed words before the cursor; emit newline candid
     titan)
       if [ "$n" -eq 1 ]; then printf 'list\nhere\nshow\n'; list_titans
       elif [ "$2" = here ] && [ "$n" -eq 2 ]; then list_titans; fi ;;
+    roster)
+      if [ "$n" -eq 1 ]; then printf 'list\nprune\nforget\n'
+      elif [ "$2" = forget ] && [ "$n" -eq 2 ]; then reg_paths; reg_used
+      elif [ "$2" = prune ] && [ "$n" -eq 2 ]; then printf -- '-n\n'; fi ;;
     play|test|random|lines)
       [ "$n" -eq 1 ] && { events; target_names; } ;;
     output)
@@ -629,6 +691,8 @@ titancall — TF2 Titan voice notifications, one voice per project
   titancall status             show enabled/muted + titan + output
   titancall whoami             show resolved titan + why, for current project
   titancall roster             list all registered project->titan + last fired
+  titancall roster prune [-n]  drop rows whose project dir no longer exists (-n = preview)
+  titancall roster forget [x]  drop one row: <path>, <titan>, or bare = this project
   titancall titan list         list installed titans
   titancall titan here <name>  pin current project to <name> (writes ./.titan + registry)
   titancall titan <name>       set global default titan (config)
@@ -668,7 +732,7 @@ main() {
     play)       cmd_play "$@" ;;
     random)     cmd_random "$@" ;;
     whoami)     cmd_whoami ;;
-    roster)     cmd_roster ;;
+    roster)     cmd_roster "$@" ;;
     titan)      cmd_titan "$@" ;;
     output)     cmd_output "$@" ;;
     volume|vol) cmd_volume "$@" ;;
