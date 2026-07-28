@@ -96,10 +96,15 @@ unused Titan (least-used once all 9 are taken) and persists both `./.titan` and 
 nothing matched), driven by `roster prune` (drops rows whose `$2` isn't a dir; `-n` previews) and
 `roster forget [<path>|<titan>|bare=project_root]`. An empty titan arg means "every row for this path",
 which is why path-mode drops all of them and titan-mode drops only that one pair — several titans can
-share a path. An ambiguous titan (>1 row) exits 2 listing the candidates rather than guessing. Nothing
-touches the project's `.titan`: identity is committable project state, so a live project simply
-re-registers on its next fire — only the registry row is transient. Freed titans need no bookkeeping,
-`reg_used`/`claim_titan` read the registry live.
+share a path. An ambiguous titan (>1 row) exits 2 listing the candidates rather than guessing. Freed
+titans need no bookkeeping — `reg_used`/`claim_titan` read the registry live.
+
+`.titan` is deliberately NOT touched by default: identity is committable project state, so a live
+project re-registers on its next fire and only the registry row is transient (after `prune` the file is
+gone with its directory anyway). `forget --purge` is the opt-in that also drops the identity, and it
+drops *only* the identity — a `.titan` carrying overlay `k=v` lines is rewritten without its titan line
+rather than deleted, so per-project aliases/groups survive. `resolve_titan`'s `[ -n "$t" ]` guard is
+what makes such an overlay-only file fall through to registry/claim instead of resolving to "".
 
 **Playback is fire-and-forget.** `play_file` detaches into a backgrounded subshell with fds closed
 and `disown`s it, so hooks never block. `TITANCALL_WAIT=1` switches to the blocking path

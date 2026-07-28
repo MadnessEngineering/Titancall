@@ -350,7 +350,9 @@ roster_prune() { # drop every row whose project dir is gone. -n/--dry-run to pre
   reg_forget "" "${gone[@]}" && echo "pruned ${#gone[@]} row(s) — those titans are free again"
 }
 
-roster_forget() { # <path> | <titan> | (bare = current project) -> remove that row
+roster_forget() { # [--purge] <path> | <titan> | (bare = current project) -> remove that row
+  local purge=0
+  case "${1:-}" in --purge|-p) purge=1; shift ;; esac
   local arg="${1:-}" path="" titan="" rows n
   if [ -z "$arg" ]; then path=$(project_root)
   elif [ -d "$arg" ] || [ "${arg:0:1}" = / ] || [ "${arg:0:1}" = . ]; then
@@ -368,7 +370,21 @@ roster_forget() { # <path> | <titan> | (bare = current project) -> remove that r
   [ -n "$shown" ] || shown=$(reg_lookup "$path" | paste -sd, -) || die "not in registry: $path"
   reg_forget "$titan" "$path" || die "not in registry: $path"
   echo "forgot $shown -> $path"
-  [ -f "$path/.titan" ] && echo "note: $path/.titan still pins '$shown' — it re-registers on next fire (rm it to fully release)"
+  if [ -f "$path/.titan" ]; then
+    if [ "$purge" = 1 ]; then
+      # keep any per-project overlay (aliases/groups) — only the identity line goes
+      local ov; ov=$(dotfile_overlay_lines "$path/.titan")
+      if [ -n "$ov" ]; then
+        printf '%s\n' "$ov" > "$path/.titan.tmp.$$" && mv "$path/.titan.tmp.$$" "$path/.titan"
+        echo "purged the titan line; kept $(printf '%s\n' "$ov" | grep -c .) overlay line(s) in $path/.titan"
+      else
+        rm -f "$path/.titan"; echo "removed $path/.titan"
+      fi
+      [ -d "$path/.git" ] && echo "note: .titan may be tracked — check 'git status' in $path"
+    else
+      echo "note: $path/.titan still pins '$shown' — it re-registers on next fire (--purge to drop it too)"
+    fi
+  fi
   return 0
 }
 
@@ -643,7 +659,7 @@ cmd_complete() { # args = completed words before the cursor; emit newline candid
       elif [ "$2" = here ] && [ "$n" -eq 2 ]; then list_titans; fi ;;
     roster)
       if [ "$n" -eq 1 ]; then printf 'list\nprune\nforget\n'
-      elif [ "$2" = forget ] && [ "$n" -eq 2 ]; then reg_paths; reg_used
+      elif [ "$2" = forget ] && [ "$n" -le 3 ]; then [ "$n" -eq 2 ] && printf -- '--purge\n'; reg_paths; reg_used
       elif [ "$2" = prune ] && [ "$n" -eq 2 ]; then printf -- '-n\n'; fi ;;
     play|test|random|lines)
       [ "$n" -eq 1 ] && { events; target_names; } ;;
@@ -692,7 +708,9 @@ titancall — TF2 Titan voice notifications, one voice per project
   titancall whoami             show resolved titan + why, for current project
   titancall roster             list all registered project->titan + last fired
   titancall roster prune [-n]  drop rows whose project dir no longer exists (-n = preview)
-  titancall roster forget [x]  drop one row: <path>, <titan>, or bare = this project
+  titancall roster forget [--purge] [x]
+                               drop one row: <path>, <titan>, or bare = this project
+                               --purge also drops the project's .titan identity line
   titancall titan list         list installed titans
   titancall titan here <name>  pin current project to <name> (writes ./.titan + registry)
   titancall titan <name>       set global default titan (config)
