@@ -32,6 +32,23 @@ BUCKET_RULES=(
   "exit|disengage|offline"
 )
 
+# ---- bucket degradation: <bucket>|<next>|<next>... — walked when a voice has no wavs for a bucket.
+# Voices are ripped by ear, so coverage is uneven and always will be (a stranger's library more so).
+# Order each chain by *nearest meaning*, so a thin voice degrades to a wrong-but-plausible line
+# rather than dying. `misc` and then any-wav-at-all are appended implicitly by playable_bucket.
+BUCKET_FALLBACK=(
+  "down|core|attack"       # a kill/finish -> triumphant, else aggressive
+  "core|down|attack"
+  "eject|damage|warn"      # fatal -> the most alarmed thing on hand
+  "damage|warn|eject"
+  "warn|damage|guard"
+  "enter|follow|guard"     # session start -> any "I'm with you" line
+  "follow|guard|enter"
+  "attack|core|enter"
+  "guard|follow|enter"
+  "exit|guard|follow|down"
+)
+
 DEFAULT_CONFIG='enabled=1
 titan=ion
 output=
@@ -158,7 +175,10 @@ reg_write()  {
   awk -F'\t' -v p="$path" '$2!=p' "$REGISTRY" > "$tmp"
   printf '%s\t%s\t%s\n' "$titan" "$path" "$now" >> "$tmp"; mv "$tmp" "$REGISTRY"
 }
-reg_touch()  { local t; t=$(reg_lookup "$1") || return 1; reg_write "$t" "$1"; }
+reg_touch()  { # path [titan] — refresh this path's row. The ACTIVE titan is authoritative: a `.titan`
+  # outranks the registry in resolve_titan, so looking the titan up BY PATH would keep re-stamping a
+  # stale row and the real owner would never get one (registry silently tracking a ghost).
+  local t="${2:-}"; [ -n "$t" ] || t=$(reg_lookup "$1") || return 1; reg_write "$t" "$1"; }
 reg_paths()  { [ -f "$REGISTRY" ] || return 0; awk -F'\t' 'NF{print $2}' "$REGISTRY"; }
 reg_rows()   { # field value -> full rows whose field N equals value
   [ -f "$REGISTRY" ] || return 0; awk -F'\t' -v n="$1" -v v="$2" '$n==v' "$REGISTRY"; }
@@ -260,10 +280,32 @@ resolve_bucket() { # event [titan] -> bucket
   fi
   printf '%s' "${members[$(( RANDOM % ${#members[@]} ))]}"
 }
+bucket_has_wavs() { # titan bucket
+  [ -n "$(find "$SOUNDS/$1/$2" -maxdepth 1 -iname '*.wav' -print -quit 2>/dev/null)" ]
+}
+
+playable_bucket() { # titan bucket -> first bucket in its degradation chain that holds wavs (rc 1 if
+  # the voice has no wavs at all). Callers log/pick the RESULT, so the log records what really played.
+  local titan="$1" want="$2" rule chain b
+  bucket_has_wavs "$titan" "$want" && { printf '%s' "$want"; return 0; }
+  for rule in "${BUCKET_FALLBACK[@]}"; do
+    [ "${rule%%|*}" = "$want" ] || continue
+    local IFS='|'; read -ra chain <<< "${rule#*|}"
+    for b in "${chain[@]}"; do
+      bucket_has_wavs "$titan" "$b" && { printf '%s' "$b"; return 0; }
+    done
+    break
+  done
+  bucket_has_wavs "$titan" misc && { printf '%s' misc; return 0; }
+  # last resort: any bucket this voice does have, so a sparse library still speaks
+  b=$(find "$SOUNDS/$titan" -mindepth 2 -maxdepth 2 -iname '*.wav' -print -quit 2>/dev/null) || return 1
+  [ -n "$b" ] || return 1
+  b=$(dirname "$b"); printf '%s' "${b##*/}"
+}
+
 pick_wav() {
   local titan="$1" bucket="$2" files=() pick f dir
   dir="$SOUNDS/$titan/$bucket"
-  [ -d "$dir" ] || dir="$SOUNDS/$titan/misc"
   [ -d "$dir" ] || return 1
   while IFS= read -r f; do files+=("$f"); done < <(find "$dir" -maxdepth 1 -iname '*.wav' 2>/dev/null)
   [ ${#files[@]} -eq 0 ] && return 1
@@ -288,9 +330,10 @@ cmd_play() {
   [ -d "$SOUNDS/$titan" ] || die "titan '$titan' has no voice folder (titancall titan list)"
   cooldown_ok "$titan" "$event" || return 0    # per-voice cooldown: collapse bursts (e.g. SubagentStop)
   bucket=$(resolve_bucket "$event" "$titan")
+  bucket=$(playable_bucket "$titan" "$bucket") || die "titan '$titan' has no wavs at all"
   f=$(pick_wav "$titan" "$bucket") || die "no audio for '$event' (bucket '$bucket') in '$titan'"
   proot=$(project_root)
-  reg_touch "$proot" 2>/dev/null
+  reg_touch "$proot" "$titan" 2>/dev/null
   log_play "$event" "$titan" "$bucket" "$f" "$proot"
   play_file "$f" "$event"
 }
@@ -299,7 +342,8 @@ confirm() { # titan event — immediate confirmation chirp: respects mute, ignor
   [ "$(cfg enabled 1)" = "0" ] && return 0
   local titan="$1" event="$2" f
   [ -d "$SOUNDS/$titan" ] || return 0
-  f=$(pick_wav "$titan" "$(resolve_bucket "$event" "$titan")") || return 0
+  local b; b=$(playable_bucket "$titan" "$(resolve_bucket "$event" "$titan")") || return 0
+  f=$(pick_wav "$titan" "$b") || return 0
   ( play_file "$f" >/dev/null 2>&1 & )
 }
 
@@ -309,6 +353,7 @@ cmd_random() {
   [ ${#titans[@]} -eq 0 ] && die "no titans installed"
   titan="${titans[$(( RANDOM % ${#titans[@]} ))]}"
   bucket=$(resolve_bucket "$event" "$titan")
+  bucket=$(playable_bucket "$titan" "$bucket") || die "titan '$titan' has no wavs at all"
   f=$(pick_wav "$titan" "$bucket") || die "no audio for '$event' across titans"
   err "($titan)"
   log_play "random:$event" "$titan" "$bucket" "$f" "$(project_root)"
