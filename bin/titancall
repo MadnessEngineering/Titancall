@@ -25,6 +25,12 @@ BUCKET_RULES=(
   "down|titan down|titan destroyed|pilot eliminated|pilot eleminated|pilot destroyed|got you|enemy titan down"
   "damage|critical damage|heavy damage|compromised|comprimised|casing|reactor|vun"
   "warn|warning|be aware|outnumbered|multititan|position compromised|postion compromised|on the hull"
+  # mount/dismount = a FRIENDLY second pilot arriving on / leaving our hull -> subagent lifecycle.
+  # Must precede `enter`, whose "onboard" pattern would otherwise swallow these. Deliberately keyed
+  # on "friendly": a *hostile* boarder is a threat and stays in `warn`, and the unqualified
+  # "pilot onboard, restoring manual control" is the pilot themselves returning, which is `enter`.
+  "mount|friendly pilot on|friendly pilot riding|friendly pilot onboard|friendly pilot detected"
+  "dismount|friendly pilot has left|friendly pilot has detached|friendly pilot is clear|friendly pilot is now clear|left the hull"
   "enter|pilot control|pilot mode online|pilot mode onlien|pilot mode engaged|controls handed|controls are handed|transfering|transfered|tranfered|manual control|manual operation|have you back|good you returned|onboard|systems nominal|all systems"
   "guard|gaurd mode|guard mode|gaurdmode"
   "follow|follow mode|folow mode|following your lead|solid copy|your lead pilot"
@@ -47,6 +53,8 @@ BUCKET_FALLBACK=(
   "attack|core|enter"
   "guard|follow|enter"
   "exit|guard|follow|down"
+  "mount|enter|follow"      # only 2 voices have friendly-boarding lines; the rest degrade to arrival
+  "dismount|exit|guard|follow"
 )
 
 DEFAULT_CONFIG='enabled=1
@@ -64,14 +72,45 @@ alias.error=damage
 alias.fatal=eject
 alias.warn=warn
 alias.start=enter
-alias.notify=follow
+alias.notify=guard
 alias.working=attack
-alias.idle=guard'
+alias.idle=guard
+alias.subagent=mount
+alias.subagent-done=dismount
+# per-event cooldowns: `follow` is the per-turn ack and fires on EVERY turn — left at the global
+# gap it drowns out everything else (half of one 800-play log was this single event). The rarer
+# and more informative an event, the shorter its gate.
+cooldown.follow=45
+cooldown.notify=20
+cooldown.subagent=10
+cooldown.subagent-done=10'
 
 err()  { printf 'titancall: %s\n' "$*" >&2; }
 die()  { err "$*"; exit 1; }
 
-ensure_config() { [ -f "$CONFIG" ] && return 0; mkdir -p "$CONFIG_DIR"; printf '%s\n' "$DEFAULT_CONFIG" > "$CONFIG"; }
+CONFIG_SCHEMA=2   # bump whenever DEFAULT_CONFIG gains keys existing installs must pick up
+
+ensure_config() {
+  if [ ! -f "$CONFIG" ]; then
+    mkdir -p "$CONFIG_DIR"; printf 'schema=%s\n%s\n' "$CONFIG_SCHEMA" "$DEFAULT_CONFIG" > "$CONFIG"; return 0
+  fi
+  # Seeding only ever ran for a BRAND-NEW config, so every default added later stayed inert on an
+  # existing install (alias.subagent shipped, but no config had it, so `subagent` routed nowhere).
+  # Merge in keys the user's file is missing; never touch a key they already have, so their edits
+  # and deliberate values win. Guarded by a schema stamp so this costs one pass, not one per fire.
+  local have; have=$(cfg schema 0)
+  [ "$have" = "$CONFIG_SCHEMA" ] 2>/dev/null && return 0
+  local line k tmp="$CONFIG.tmp.$$"
+  cp "$CONFIG" "$tmp" || return 0
+  while IFS= read -r line; do
+    case "$line" in ''|'#'*) continue ;; esac
+    k="${line%%=*}"
+    grep -qE "^${k}=" "$tmp" || printf '%s\n' "$line" >> "$tmp"
+  done <<< "$DEFAULT_CONFIG"
+  if grep -qE '^schema=' "$tmp"; then sed "s|^schema=.*|schema=$CONFIG_SCHEMA|" "$tmp" > "$tmp.2" && mv "$tmp.2" "$tmp"
+  else printf 'schema=%s\n' "$CONFIG_SCHEMA" >> "$tmp"; fi
+  mv "$tmp" "$CONFIG"
+}
 
 _OVERLAY=""; _OVERLAY_RESOLVED=""
 overlay_path() { # memoized: this project's .titan (config overlay), or empty. cfg reads it first.
@@ -303,13 +342,37 @@ playable_bucket() { # titan bucket -> first bucket in its degradation chain that
   b=$(dirname "$b"); printf '%s' "${b##*/}"
 }
 
-pick_wav() {
-  local titan="$1" bucket="$2" files=() pick f dir
+pick_wav() { # titan bucket -> a wav path, avoiding this voice's last `recent` picks
+  # Uniform RANDOM repeats itself audibly: a 3-wav bucket plays the same line twice in a row 1 turn
+  # in 3, and a 1-wav bucket is a metronome. Keeping a short per-voice memory of what just played
+  # matters MORE the thinner the library is — which is exactly the case for a stranger's own files.
+  local titan="$1" bucket="$2" files=() fresh=() pick f dir rf n recent tmp
   dir="$SOUNDS/$titan/$bucket"
   [ -d "$dir" ] || return 1
   while IFS= read -r f; do files+=("$f"); done < <(find "$dir" -maxdepth 1 -iname '*.wav' 2>/dev/null)
   [ ${#files[@]} -eq 0 ] && return 1
-  pick=$(( RANDOM % ${#files[@]} )); printf '%s' "${files[$pick]}"
+
+  n=$(cfg recent 5); rf="$STATE/$titan.recent"
+  if [ "$n" -gt 0 ] 2>/dev/null && [ -s "$rf" ]; then
+    # Consult only the last (bucket size - 1) picks. The memory is per-VOICE but buckets differ
+    # wildly in size, so a flat window silently disables itself on any bucket smaller than it —
+    # exactly the thin buckets that need it most. This always leaves >=1 candidate, so a repeat
+    # only happens when the bucket truly holds one file.
+    local w=$(( ${#files[@]} - 1 )); [ "$w" -gt "$n" ] && w="$n"
+    if [ "$w" -gt 0 ]; then
+      recent=$(tail -n "$w" "$rf" 2>/dev/null)
+      for f in "${files[@]}"; do list_has "${f##*/}" "$recent" || fresh+=("$f"); done
+      [ ${#fresh[@]} -gt 0 ] && files=("${fresh[@]}")
+    fi
+  fi
+  pick=$(( RANDOM % ${#files[@]} )); f="${files[$pick]}"
+
+  if [ "$n" -gt 0 ] 2>/dev/null; then                 # remember it (newest last, trimmed to n)
+    mkdir -p "$STATE"; tmp="$rf.tmp.$$"
+    { [ -f "$rf" ] && cat "$rf"; printf '%s\n' "${f##*/}"; } | tail -n "$n" > "$tmp" 2>/dev/null &&
+      mv "$tmp" "$rf"
+  fi
+  printf '%s' "$f"
 }
 
 # ---- subcommands ----
@@ -486,7 +549,7 @@ list_has() { # needle newline-list -> 0 if an exact line matches
   return 1
 }
 
-CONFIG_KEYS="enabled titan output volume cooldown loudness claim log"
+CONFIG_KEYS="enabled titan output volume cooldown loudness claim log recent schema"
 key_ok() { # 0 if key is a known scalar, alias.*, group.*, or per-event volume./cooldown. override
   case "$1" in
     alias.*|volume.*|cooldown.*|group.*) return 0 ;;
@@ -746,7 +809,9 @@ titancall — TF2 Titan voice notifications, one voice per project
 
   titancall <event>            play event for this project's titan
   titancall play <event>       events: done success error fatal warn start notify working idle
-                               buckets: down core damage eject warn enter follow attack guard exit misc
+                                       subagent subagent-done
+                               buckets: down core damage eject warn enter follow attack guard exit
+                                        mount dismount misc
   titancall random <event>     play from a random titan
   titancall on | off | toggle  global mute switch (hooks stay quiet when off)
   titancall status             show enabled/muted + titan + output

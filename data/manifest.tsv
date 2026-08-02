@@ -92,14 +92,14 @@ jarvis	warning-you-have-sustained-heavy-damage.wav	damage	damage	warning you hav
 jarvis	autoejecting.wav	eject	eject	autoejecting	filename
 jarvis	eject-override.wav	eject	eject	eject override	filename
 jarvis	forcing-pilot-eject.wav	eject	eject	forcing pilot eject	filename
-jarvis	friendly-pilot-on-board.wav	enter	enter	friendly pilot on board	filename
-jarvis	friendly-pilot-on-your-titan.wav	enter	enter	friendly pilot on your titan	filename
-jarvis	friendly-pilot-riding-on-board.wav	enter	enter	friendly pilot riding on board	filename
-jarvis	i-am-detectig-a-friendly-pilot-onboard.wav	enter	enter	i am detectig a friendly pilot onboard	filename
-jarvis	friendly-pilot-has-detached-from-your-titan.wav	exit	exit	friendly pilot has detached from your titan	filename
-jarvis	friendly-pilot-has-left-your-titan.wav	exit	exit	friendly pilot has left your titan	filename
-jarvis	friendly-pilot-is-clear-of-your-titan.wav	exit	exit	friendly pilot is clear of your titan	filename
-jarvis	friendly-pilot-is-now-clear-of-your-titan.wav	exit	exit	friendly pilot is now clear of your titan	filename
+jarvis	friendly-pilot-on-board.wav	enter	mount	friendly pilot on board	filename
+jarvis	friendly-pilot-on-your-titan.wav	enter	mount	friendly pilot on your titan	filename
+jarvis	friendly-pilot-riding-on-board.wav	enter	mount	friendly pilot riding on board	filename
+jarvis	i-am-detectig-a-friendly-pilot-onboard.wav	enter	mount	i am detectig a friendly pilot onboard	filename
+jarvis	friendly-pilot-has-detached-from-your-titan.wav	exit	dismount	friendly pilot has detached from your titan	filename
+jarvis	friendly-pilot-has-left-your-titan.wav	exit	dismount	friendly pilot has left your titan	filename
+jarvis	friendly-pilot-is-clear-of-your-titan.wav	exit	dismount	friendly pilot is clear of your titan	filename
+jarvis	friendly-pilot-is-now-clear-of-your-titan.wav	exit	dismount	friendly pilot is now clear of your titan	filename
 jarvis	have-a-nice-day.wav	exit	exit	have a nice day	filename
 jarvis	a-friendly-titan-is-attacking-your-target.wav	follow	follow	a friendly titan is attacking your target	filename
 jarvis	a-pilot-is-attackig-your-target.wav	follow	follow	a pilot is attackig your target	filename
@@ -145,7 +145,7 @@ legion	warning-serv-reactor-damage-sustatined.wav	damage	damage	warning serv rea
 legion	eject-you-are-engaging-multi-titans.wav	eject	eject	eject you are engaging multi titans	filename
 legion	eject.wav	eject	eject	eject	filename
 legion	eject2.wav	eject	eject	eject2	filename
-legion	friendly-pilot-on-extiorer.wav	enter	enter	friendly pilot on extiorer	filename
+legion	friendly-pilot-on-extiorer.wav	enter	mount	friendly pilot on extiorer	filename
 legion	manual-targeting-restroed.wav	enter	enter	manual targeting restroed	filename
 legion	pilot-mode-engaged-manual-targeting-restored.wav	enter	enter	pilot mode engaged manual targeting restored	filename
 legion	pilot-mode-engaged.wav	enter	enter	pilot mode engaged	filename
@@ -156,7 +156,7 @@ legion	transfering-controls-to-manual-operation.wav	enter	enter	transfering cont
 legion	we-are-better-together.wav	enter	enter	we are better together	filename
 legion	welcome-back-pilot-mode-online.wav	enter	enter	welcome back pilot mode online	filename
 legion	welcome-back.wav	enter	enter	welcome back	filename
-legion	friendly-pilot-has-left-the-hull.wav	exit	exit	friendly pilot has left the hull	filename
+legion	friendly-pilot-has-left-the-hull.wav	exit	dismount	friendly pilot has left the hull	filename
 legion	engaging-follow-mode.wav	follow	follow	engaging follow mode	filename
 legion	engaging-follow-mode2.wav	follow	follow	engaging follow mode2	filename
 legion	follow-mode-engaged.wav	follow	follow	follow mode engaged	filename

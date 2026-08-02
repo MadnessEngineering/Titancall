@@ -42,12 +42,14 @@ For anything that *writes* (moves, groups, aliases), point it at a throwaway lib
 
 ## Runtime state (all outside the repo)
 
-- `~/.config/titancall/config` — global `key=value` lines; seeded from `DEFAULT_CONFIG` on first run.
+- `~/.config/titancall/config` — global `key=value` lines; seeded from `DEFAULT_CONFIG` on first run,
+  and thereafter *merged forward* by `ensure_config` (see the schema note below).
 - `<project>/.titan` — IN the project (committable). Line 1 = the titan name; any `key=value` lines
   below are a per-project config overlay that wins over the global config (see `cmd_project`).
 - `~/.config/titancall/registry` — TSV `titan \t project_path \t last_fired_iso`.
 - `~/.local/share/titancall/sounds/<titan>/<bucket>/*.wav` — voice library (~400M, NOT in git).
 - `~/.local/share/titancall/state/<titan>.last` — epoch of last play, for cooldown.
+- `~/.local/share/titancall/state/<titan>.recent` — last N clip basenames, for the anti-repeat filter.
 - `~/.local/share/titancall/log` — TSV playback log.
 
 ## Architecture (the parts that span functions)
@@ -105,6 +107,34 @@ gone with its directory anyway). `forget --purge` is the opt-in that also drops 
 drops *only* the identity — a `.titan` carrying overlay `k=v` lines is rewritten without its titan line
 rather than deleted, so per-project aliases/groups survive. `resolve_titan`'s `[ -n "$t" ]` guard is
 what makes such an overlay-only file fall through to registry/claim instead of resolving to "".
+
+**Coverage is uneven, so buckets degrade rather than fail.** Voices are ripped by ear, so no titan
+has every bucket (only 4 of 10 have `down`, which `alias.done` targets). `BUCKET_FALLBACK` is an
+ordered `bucket|next|next...` list of *nearest-meaning* substitutes (`down→core→attack`,
+`eject→damage→warn`); `playable_bucket` walks it, then `misc`, then any wav the voice owns, and only
+fails if the voice is empty. Every caller resolves the playable bucket *before* picking, so the log
+records what actually played, not what was asked for. Adding a bucket that few voices have is
+therefore cheap — give it a chain and thin voices degrade instead of dying (this is what makes
+`mount`/`dismount` viable when only jarvis and legion voice them).
+
+**`mount`/`dismount` are the subagent lifecycle.** A *friendly* second pilot boarding our hull maps
+to a subagent starting; detaching maps to it finishing. Three-way split worth preserving: a
+**hostile** boarder is a threat (`warn`), and an unqualified "pilot onboard, restoring manual
+control" is the pilot themselves returning (`enter`). `mount` is the one signal with no dedicated
+Claude Code hook — `install-hooks.sh` reaches it via `PreToolUse` scoped to the `Task` matcher, the
+sole matcher-keyed entry in `EVENTS` (bare `PreToolUse` would fire on every tool call).
+
+**Anti-repeat beats bucket size.** `pick_wav` keeps a per-voice memory (`state/<titan>.recent`,
+length `recent`, default 5) and drops recently-played files from the candidate set. The consulted
+window is clamped to `bucket size - 1`: a flat window silently disables itself on any bucket smaller
+than it — precisely the thin buckets that need it — so the clamp guarantees ≥1 fresh candidate and
+an immediate repeat only when a bucket truly holds one file.
+
+**`DEFAULT_CONFIG` reaches existing installs via `CONFIG_SCHEMA`.** Seeding used to run only for a
+brand-new config, so every default added later was inert for anyone already installed. `ensure_config`
+now merges in *missing* keys and stamps `schema=N`; it never overwrites a key the user already has,
+so their values win. Bump `CONFIG_SCHEMA` whenever `DEFAULT_CONFIG` gains a key. Corollary: changing
+a default's *value* still won't reach existing installs — that's deliberate.
 
 **Playback is fire-and-forget.** `play_file` detaches into a backgrounded subshell with fds closed
 and `disown`s it, so hooks never block. `TITANCALL_WAIT=1` switches to the blocking path

@@ -35,6 +35,10 @@ Bucket semantics (target of Claude hooks via alias map):
   attack engaging enemy, targeting, weapons armed/energized, powering up, scanning for hostiles
   guard  guard mode
   exit   disengage, shutdown, logoff, offline
+  mount    a FRIENDLY second pilot arrives on our hull -> a subagent starts. Note the three-way
+           split: a *hostile* boarder is a threat and belongs in `warn`, and an unqualified
+           "pilot onboard, restoring manual control" is the pilot themselves and belongs in `enter`.
+  dismount that friendly pilot detaches / is clear of the titan -> a subagent finishes
   misc   genuine leftovers: SFX, loadout/upgrade notifications, ally chatter, flavor
 """
 import os, sys, subprocess
@@ -46,6 +50,22 @@ DATA = os.path.join(REPO, "data")
 
 # (titan, slug) -> corrected bucket. Only files that MOVE.
 OVERRIDES = {
+    # --- subagent lifecycle: friendly boarder = mount/dismount (see bucket semantics above).
+    # Pulled out of enter/exit, where they were diluting "the pilot returns" / "session over".
+    # Only jarvis and legion voice these at all; every other titan degrades via BUCKET_FALLBACK.
+    ("jarvis", "friendly-pilot-on-board"): "mount",
+    ("jarvis", "friendly-pilot-on-your-titan"): "mount",
+    ("jarvis", "friendly-pilot-riding-on-board"): "mount",
+    ("jarvis", "i-am-detectig-a-friendly-pilot-onboard"): "mount",
+    ("legion", "friendly-pilot-on-extiorer"): "mount",
+    ("jarvis", "friendly-pilot-has-detached-from-your-titan"): "dismount",
+    ("jarvis", "friendly-pilot-has-left-your-titan"): "dismount",
+    ("jarvis", "friendly-pilot-is-clear-of-your-titan"): "dismount",
+    ("jarvis", "friendly-pilot-is-now-clear-of-your-titan"): "dismount",
+    ("legion", "friendly-pilot-has-left-the-hull"): "dismount",
+    # NOT moved, deliberately: legion/pilot-onboard{,-restoring-manual-controls} and
+    # scorch/pilot-onboard-restoring-manual-control are the pilot boarding their OWN titan -> enter.
+
     ("ion", "advice-defensive-system"): "damage",
     ("ion", "asfa"): "damage",  # STT: "severe damage..." — see TRANSCRIBED
     ("ion", "enemy-pilot-attacking"): "warn",
@@ -176,7 +196,7 @@ def walk():
 
 REVIEW_CSV = os.path.join(DATA, "review.csv")
 BUCKETS = ["eject", "core", "down", "damage", "warn", "enter",
-           "guard", "follow", "attack", "exit", "misc"]
+           "guard", "follow", "attack", "exit", "mount", "dismount", "misc"]
 
 
 def pending_edits():
