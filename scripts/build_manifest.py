@@ -233,7 +233,7 @@ def export_review(rows, force=False):
     print(f"wrote {REVIEW_CSV}  ({len(rows)} rows)")
     print(f"edit the new_bucket column, then: python3 scripts/build_manifest.py --import-review")
     print(f"valid buckets: {' '.join(BUCKETS)}\n")
-    print("gaps — buckets with no clips for that voice (these fall back to misc today):")
+    print("gaps — buckets with no clips for that voice (these degrade down BUCKET_FALLBACK):")
     for t in sorted(counts):
         missing = [b for b in BUCKETS if b != "misc" and not counts[t].get(b)]
         print(f"  {t:<10} {' '.join(missing) if missing else '(complete)'}")

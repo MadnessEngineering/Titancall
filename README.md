@@ -15,13 +15,18 @@ titancall start &     # "Pilot mode online."
 
 ```sh
 ./install.sh                  # symlinks bin/titancall -> ~/.local/bin, seeds config
-./install-hooks.sh            # adds Stop/Notification hooks to ~/.claude/settings.json (idempotent)
+./install-hooks.sh            # wires the Claude Code hooks into ~/.claude/settings.json (idempotent)
 brew install switchaudio-osx  # only needed to route to a non-default output device
 ```
 
 `install-hooks.sh` merges into existing hooks — it never clobbers what's already there, and re-running
 is a safe no-op. Pass a path to target a different settings file: `./install-hooks.sh ./.claude/settings.json`.
 Mute without touching hooks: `titancall off` (re-enable with `titancall on`).
+
+Because installing is purely **additive**, retargeting an event in the `EVENTS` map leaves the old hook
+behind and both fire. `./install-hooks.sh --prune` removes any titancall hook the map no longer wants;
+without the flag they're only reported. Anything not in the map counts as stale — so a hand-added
+titancall hook gets pruned. Add it to `EVENTS` instead, and it survives.
 
 **Shell completion** — `install.sh` also wires up tab-completion for bash & zsh (symlinks into a
 writable completions dir, or prints the line to add — never edits your rc file). Completions are
@@ -32,9 +37,9 @@ writable completions dir, or prints the line to add — never edits your rc file
 Voice library lives outside the repo (it's ~400M of `.wav`) at
 `~/.local/share/titancall/sounds/<titan>/<event>/`. Drop new lines there and run `titancall normalize`.
 
-## Titans (9)
+## Titans (10)
 
-`bt · ion · jarvis · legion · monarch · northstar · ronin · scorch · tone`
+`bt · ion · jarvis · legion · monarch · northstar · portal · ronin · scorch · tone`
 
 ## Events
 
@@ -51,8 +56,20 @@ Hooks speak dev-words; config aliases map them to Titan voice-line **buckets**:
 | `notify`  | follow | "Following your lead, Pilot" |
 | `working` | attack | "Engaging Titan" |
 | `idle`    | guard  | "Guard mode activated" |
+| `subagent` | mount | "Friendly pilot on board" (a subagent mounts up) |
+| `subagent-done` | dismount | "Friendly pilot has left your Titan" |
 
-Raw buckets are also playable directly: `down core damage eject warn enter follow attack guard exit misc`.
+Raw buckets are also playable directly:
+`down core damage eject warn enter follow attack guard exit mount dismount misc`.
+
+### Degradation — a thin voice never goes silent
+
+Only two voices have friendly-boarding lines, so `mount` would be silence for the other eight. Instead
+each bucket carries a **fallback chain** of nearest-meaning buckets (`BUCKET_FALLBACK` in `bin/titancall`):
+`mount → enter → follow`, `dismount → exit → guard → follow`, `eject → damage → warn`, and so on. First
+bucket in the chain that actually holds wavs wins; then `misc`; then any clip the voice has at all. The
+**result** is what gets logged, so `titancall log` shows the bucket that really played, not the one asked
+for. A Titan with six clips still speaks on every event — just with a wrong-but-plausible line.
 
 ### Groups — one event, several buckets
 
@@ -102,7 +119,7 @@ $TITANCALL_TITAN  >  nearest ./.titan (walks up)  >  registry (by project path) 
 ```
 
 - **Claim**: first time an unregistered project fires, it grabs the next unused Titan, writes `./.titan`,
-  and records it in `~/.config/titancall/registry`. Unique until you exceed 9 projects (then load-balances).
+  and records it in `~/.config/titancall/registry`. Unique until you exceed 10 projects (then load-balances).
 - `titancall whoami` — show this project's Titan and *why*.
 - `titancall titan here <name>` — pin a project deliberately.
 - `titancall roster` — table of every project → Titan → last fired.
@@ -125,7 +142,8 @@ Run `./install-hooks.sh` to wire these into `~/.claude/settings.json` (idempoten
 | SessionStart       | start   | "Pilot mode online" |
 | Stop               | follow  | "Solid copy" (per-turn ack, back to you) |
 | Notification       | notify  | "Following your lead, Pilot" |
-| SubagentStop       | follow  | "Solid copy" |
+| PreToolUse (matcher `Task`) | subagent | "Friendly pilot on board" (a subagent launches) |
+| SubagentStop       | subagent-done | "Friendly pilot has left your Titan" |
 | PostToolUseFailure | error   | "Critical damage sustained" |
 | PermissionRequest  | warn    | "Warning" |
 | TaskCreated        | working | "Engaging Titan" (work begins) |
@@ -133,14 +151,40 @@ Run `./install-hooks.sh` to wire these into `~/.claude/settings.json` (idempoten
 | Elicitation        | notify  | "Following your lead, Pilot" (MCP asks for input) |
 | PostCompact        | start   | "Pilot mode online" (back online after compaction) |
 | SessionEnd         | exit    | "Disengage" |
+| WorktreeCreate     | mount   | "Friendly pilot on board" (work moves into an isolated worktree) |
+| WorktreeRemove     | dismount | "Friendly pilot has left your Titan" |
 
-`PreToolUse`/`PostToolUse` are intentionally excluded — they fire on every tool call. Edit the `EVENTS`
-map in `install-hooks.sh` to add/trim. Too chatty? `titancall off`.
+Bare `PreToolUse`/`PostToolUse` are excluded — they fire on every tool call. The one exception is
+`PreToolUse` narrowed to the `Task` matcher, which fires only when a subagent launches: the sole signal
+with no dedicated hook of its own, and the sole matcher-scoped entry in the map. Keep it that way.
+
+Deliberately **not** mapped, though the hooks exist: `InstructionsLoaded` (fires on every CLAUDE.md /
+rule load), `ElicitationResult` (`Elicitation` already announced the ask; the result is your own
+keypress), `ConfigChange` (settings edits are usually yours — including this wiring).
+
+Edit the `EVENTS` map in `install-hooks.sh` to add/trim, then re-run it (`--prune` to drop what you
+retargeted away from). Too chatty? `titancall off`.
 
 **Cooldown** — a burst of the same event (e.g. `SubagentStop` firing once per subagent in a workflow)
 would stampede the same voice. `titancall` enforces a per-voice minimum gap (default 4s): within the
 window, extra fires return silently. Distinct titans can still overlap. Tune with `titancall cooldown <secs>`
 (0 = off). State lives in `~/.local/share/titancall/state/<titan>.last`.
+
+A **per-event** override beats the global gap — `cooldown.<event>`, and likewise `volume.<event>` for
+loudness. The shipped config leans on this to keep the chatty hooks in the background without muting
+the rare ones:
+
+```sh
+titancall config set cooldown.follow 45   # per-turn ack: at most one every 45s (shipped default)
+titancall config set volume.error 1.0     # ...but never miss a failure
+titancall config unset cooldown.follow    # back to the global gap
+```
+
+**Anti-repeat** — uniform random repeats itself audibly: a 3-wav bucket plays the same line twice in a
+row one turn in three, and a 1-wav bucket is a metronome. Each voice remembers its last `recent` picks
+(default 5, `titancall config set recent 0` to disable) and draws from what's left. The window is capped
+at *bucket size − 1*, so it never shrinks a thin bucket to zero candidates — a repeat happens only when
+the bucket genuinely holds one file.
 
 ## The console — `titancall ui`
 
@@ -199,17 +243,19 @@ whole import with line numbers and changes nothing. Same authority as the consol
 The gap report tells you what re-sorting **can't** fix — buckets where a voice simply has no clip:
 
 ```
-gaps — buckets with no clips for that voice (these fall back to misc today):
+gaps — buckets with no clips for that voice (these degrade down BUCKET_FALLBACK):
   jarvis     down guard follow exit
   portal     eject core guard attack
   northstar  down
 ```
 
-Nothing in `misc` becomes a "guard mode" line if Jarvis never says one. Those buckets currently fall
-back to a random `misc` clip, so Jarvis firing `done` may announce *"your thriple threat wil now fire
-magnetic gernades."* Point the event at a **group** to cover it (`titancall group set takedown
-down,attack,warn` + `titancall alias done takedown`) — group members are narrowed per-voice, so a
-Titan lacking one member just draws from the others.
+Nothing in `misc` becomes a "guard mode" line if Jarvis never says one. A gap isn't silence — the
+fallback chain covers it with the nearest plausible bucket — but nearest-plausible is still not the
+line you wanted, and a voice missing the whole chain lands in `misc`, where Jarvis firing `done` may
+announce *"your thriple threat wil now fire magnetic gernades."* Two ways to close a gap for real:
+sort clips into the bucket (`titancall review`), or point the event at a **group** (`titancall group
+set takedown down,attack,warn` + `titancall alias done takedown`) — group members are narrowed
+per-voice, so a Titan lacking one member just draws from the others.
 
 ## Playback log
 
@@ -239,18 +285,25 @@ long-build-command; titancall done   # speak when a long command finishes
 
 ```
 titancall <event>            play event for this project's Titan
+titancall play <event>       same, spelled out
 titancall random <event>     play from a random Titan
+titancall on | off | toggle  global mute switch (hooks stay quiet when off)
+titancall status             enabled/muted + titan + output
 titancall ui                 curses console: wavs -> buckets -> groups -> events (needs python3)
 titancall whoami | roster
+titancall roster prune [-n] | forget [--purge] [<path>|<titan>]
 titancall titan list | here <name> | <name>
 titancall output list | <device> | default
 titancall volume [0..1]
+titancall cooldown [secs]    per-voice minimum gap; 0 = off
 titancall lines [event]
 titancall alias [<event> <bucket|group>]
 titancall group list | show <n> | set <n> <b1,b2,...> | rm <n>
+titancall project show | alias <e> <t> | group <n> <b,..> | set <k> <v> | unset <k>
 titancall buckets            bucket names, one per line
 titancall review [apply]     whole library -> data/review.csv for hand-sorting; apply folds it back
 titancall normalize          re-bucket + rename installed wavs
+titancall level              loudness-normalize the library to config 'loudness' LUFS (needs ffmpeg)
 titancall config | test [event]
 titancall config unset <alias.x|group.x|volume.x|cooldown.x>
 titancall log [n] | on | off | clear
