@@ -47,7 +47,13 @@ EVENTS = {
     "Elicitation":        "notify",   # MCP server requests your input
     "PostCompact":        "start",    # all systems nominal — back online after compaction
     "SessionEnd":         "exit",     # disengage
+    "WorktreeCreate":     "mount",    # mounting up — work moves into an isolated worktree
+    "WorktreeRemove":     "dismount", # dismount — the worktree is folded back up
 }
+# Deliberately NOT mapped (they exist as hooks; the cue would be noise):
+#   InstructionsLoaded — fires on every CLAUDE.md / rule load, several per session
+#   ElicitationResult  — Elicitation already announces the ask; the result is your own keypress
+#   ConfigChange       — settings edits are usually YOUR edit, and this file is one of them
 
 # Keyed by (event, matcher, command), not command alone: the same command is legitimately wanted
 # under one event and stale under another (`follow` belongs to Stop, but no longer to SubagentStop).
