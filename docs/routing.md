@@ -8,8 +8,9 @@ in `bin/titancall` — grep them.
 
 ## 1. The chain: hook → event → bucket → wav
 
-Callers speak *dev-words* (`done success error fatal warn start notify working idle`). The sound
-folders speak *titan-words* (`down core damage eject warn enter follow attack guard exit misc`).
+Callers speak *dev-words* (`done success error fatal warn start notify working idle subagent
+subagent-done`). The sound folders speak *titan-words* (`down core damage eject warn enter follow
+attack guard exit mount dismount misc`).
 `alias.<event>` lines in the config bridge the two, and a `group.<name>` can stand in between as
 a bucket multiplexer. That indirection is the whole trick: hooks never learn Titanfall
 vocabulary, and you retune what "done" sounds like without touching a single hook.
@@ -26,8 +27,15 @@ flowchart TD
     TG -- yes --> GB["group_buckets: list members, keep only buckets this titan has wavs for, pick ONE at random"]
     TG -- no --> BK
     GB --> BK(["bucket (titan-word): down, damage, enter, ..."])
-    BK --> PW["pick_wav: random wav from sounds/TITAN/BUCKET/ (dir missing? falls back to misc/)"]
+    BK --> PB["playable_bucket: this voice has wavs here? else walk BUCKET_FALLBACK, then misc, then any bucket it owns"]
+    PB --> PW["pick_wav: random wav from sounds/TITAN/BUCKET/, skipping this voice's last `recent` picks"]
 ```
+
+*Two guards sit between the bucket and the sound, and both change what gets logged. `playable_bucket`
+resolves the ASKED-FOR bucket to one this voice can actually speak — `mount → enter → follow` when
+only jarvis and legion voice boarding lines — and callers log the RESULT, so `titancall log` shows
+what really played. `pick_wav` then avoids the voice's last `recent` draws (default 5, window capped
+at bucket size − 1), because a 3-wav bucket otherwise repeats itself one turn in three.*
 
 *`resolve_bucket` is the middle of this diagram — alias lookup, fall-through, group expansion.
 The fall-through arm is why raw bucket names play directly: `titancall attack` needs no alias,
@@ -58,6 +66,20 @@ combat` = `attack down warn` → say scorch has no `warn/` folder, so members na
 `attack down` → `RANDOM` lands on `attack` → `pick_wav scorch attack` → *"Engaging enemy
 Titan."* The next fire may draw `down` instead. That per-voice narrowing matters: a titan
 missing one member bucket simply never draws it, instead of face-planting into `misc`.
+
+**Worked trace #3 — the bucket the voice can't speak:**
+
+```
+$ cd ~/lab/inventorium    # a subagent launches; PreToolUse:Task fires `titancall subagent &`
+```
+
+1. `resolve_titan` → **monarch** (via dotfile).
+2. `resolve_bucket subagent monarch` — `alias.subagent=mount`; `mount` names no group → bucket **mount**.
+3. `playable_bucket monarch mount` — monarch has no `mount/` wavs (only jarvis and legion do), so it
+   walks the `mount|enter|follow` chain → **enter**, which monarch has 6 of.
+4. `pick_wav monarch enter` — drops whatever's in `state/monarch.recent`, draws from the rest.
+5. Logged as bucket `enter`, not `mount`: *"Welcome back, Pilot."* A wrong-but-plausible line beats
+   silence, and the log never claims a bucket that didn't play.
 
 ## 2. Who speaks: titan identity (`resolve_titan`)
 
@@ -114,7 +136,8 @@ flowchart TD
     RT --> CO{"cooldown_ok? state/ion.last vs cooldown, default 4s. cooldown.EVENT overrides"}
     CO -- "within gap" --> S2(["return 0 - burst collapsed"])
     CO -- clear --> RB["resolve_bucket done ion → down"]
-    RB --> PK["pick_wav ion down → one wav"]
+    RB --> PB["playable_bucket ion down → down (or its BUCKET_FALLBACK stand-in)"]
+    PB --> PK["pick_wav ion down → one wav, anti-repeat filtered"]
     PK --> LG["reg_touch + log_play - the playback log row"]
     LG --> PL{"play_file: TITANCALL_WAIT=1?"}
     PL -- "no (default)" --> BG["backgrounded subshell, fds closed, disowned - titancall returns before sound starts"]

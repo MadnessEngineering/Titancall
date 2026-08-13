@@ -18,6 +18,7 @@ firing a notification must never need python.
 ```sh
 ./install.sh                          # symlink bin/titancall -> ~/.local/bin, seed config
 ./install-hooks.sh [settings.json]    # merge Claude Code hooks (idempotent, python3 merge)
+./install-hooks.sh --prune            # ...and drop titancall hooks the EVENTS map no longer wants
 TITANCALL_WAIT=1 titancall test done  # play + BLOCK until clip ends — use this to verify audio
 titancall config                      # dump active config
 titancall whoami                      # resolved titan + why (env|dotfile|registry|claimed|config)
@@ -122,7 +123,18 @@ to a subagent starting; detaching maps to it finishing. Three-way split worth pr
 **hostile** boarder is a threat (`warn`), and an unqualified "pilot onboard, restoring manual
 control" is the pilot themselves returning (`enter`). `mount` is the one signal with no dedicated
 Claude Code hook — `install-hooks.sh` reaches it via `PreToolUse` scoped to the `Task` matcher, the
-sole matcher-keyed entry in `EVENTS` (bare `PreToolUse` would fire on every tool call).
+sole matcher-keyed entry in `EVENTS` (bare `PreToolUse` would fire on every tool call). The same two
+buckets serve `WorktreeCreate`/`WorktreeRemove`, which is the same boarding gesture at repo scale.
+
+**`EVENTS` is the only durable home for a hook, because installing is additive.** Adding a mapping
+never removes the old one, so retargeting an event (`SubagentStop`: `follow` → `subagent-done`) would
+leave both firing. Hence the stale pass: any hook whose command mentions `titancall` but isn't in
+`wanted` — keyed on `(event, matcher, command)`, since the same command is legitimately wanted under
+one event and stale under another — is reported, and removed with `--prune`. Corollary for anyone
+hand-adding a titancall hook straight into settings.json: the next `--prune` deletes it. Put it in
+the map. Hooks deliberately left unmapped are recorded in a comment under `EVENTS` (currently
+`InstructionsLoaded`, `ElicitationResult`, `ConfigChange` — too frequent or redundant to be signal),
+so the gap reads as a decision rather than an oversight.
 
 **Anti-repeat beats bucket size.** `pick_wav` keeps a per-voice memory (`state/<titan>.recent`,
 length `recent`, default 5) and drops recently-played files from the candidate set. The consulted
