@@ -76,12 +76,22 @@ for spec, te in EVENTS.items():
 # Stale hooks: a titancall hook whose command isn't one this map wants. Retargeting an event (e.g.
 # SubagentStop follow -> subagent-done) would otherwise leave the old one behind and fire BOTH,
 # since installing is purely additive. Report by default; --prune removes.
+def is_titancall(cmd):
+    """Match on the invoked BINARY, never a substring of the whole line.
+
+    `"titancall" in cmd` ate an unrelated hook whose script merely lived under a path containing
+    the word (…/projects/common/titancall/…). Prune deletes other people's hooks, so it has to be
+    certain. Comparing basename(argv[0]) still catches titancall installed at any path.
+    """
+    parts = cmd.split()
+    return bool(parts) and os.path.basename(parts[0]) == "titancall"
+
 stale = []
 for event, groups in hooks.items():
     for g in groups:
         for hk in g.get("hooks", []):
             c = hk.get("command", "")
-            if "titancall" in c and (event, g.get("matcher", ""), c) not in wanted:
+            if is_titancall(c) and (event, g.get("matcher", ""), c) not in wanted:
                 stale.append((event, g, hk, c))
 
 if stale and prune:
