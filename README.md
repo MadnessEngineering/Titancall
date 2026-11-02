@@ -37,9 +37,14 @@ writable completions dir, or prints the line to add — never edits your rc file
 Voice library lives outside the repo (it's ~400M of `.wav`) at
 `~/.local/share/titancall/sounds/<titan>/<event>/`. Drop new lines there and run `titancall normalize`.
 
-## Titans (10)
+## Titans (11)
 
-`bt · ion · jarvis · legion · monarch · northstar · portal · ronin · scorch · tone`
+`bt · ion · jarvis · legion · monarch · northstar · portal · ronin · scorch · terran · tone`
+
+`terran` isn't a Titan — it's 83 StarCraft: Brood War lines (Firebat, Ghost, Battlecruiser, mission-chatter
+panic like "Uhh... how do you work this damn thing?"). Only the Brood War disc's campaign + expansion audio,
+not the base-game unit barks, so it's deliberately thin. Provenance and how to rebuild it:
+`data/terran-source.tsv` + `scripts/mpq_extract.py`.
 
 ## Events
 

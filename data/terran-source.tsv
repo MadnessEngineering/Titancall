@@ -1,0 +1,88 @@
+# terran voice provenance (reference only — nothing reads this file; buckets live in buckets.tsv)
+# source: archive.org item StarCraftBroodWarExpansionSetUSA -> bin/cue (MODE1/2352) -> INSTALL.EXE is an MPQ with no listfile
+# extract: python3 scripts/mpq_extract.py <mounted-cd>/INSTALL.EXE <outdir> .wav   (needs `brew install stormlib`)
+# columns: id (File<id zero-padded to 8>.wav from the MPQ) <TAB> bucket <TAB> transcript (whisper small.en, hand-corrected)
+# clips were leveled to -18 LUFS, 44.1k mono: ffmpeg -af loudnorm=I=-18:TP=-1.5:LRA=11 -ar 44100 -ac 1
+431	attack	Need a light?
+720	attack	Ignition commencing!
+432	attack	Fire it up!
+438	attack	Live for the swarm!
+501	attack	Power overwhelming.
+503	attack	Prepare to die.
+408	attack	Wax 'em, boys.
+419	attack	Prepare 'em yourself!
+299	down	Never know what hit 'em.
+297	down	Now reap the whirlwind.
+296	down	You called down the Thunder.
+423	down	Hehehe, I love the smell of toasted zerglings in the morning.
+379	down	Say goodnight Stukov.
+358	down	Heh, check that out. They're trapped.
+357	down	Room secure, sir.
+236	core	Battle Cruiser operational.
+324	core	Battle Cruiser operational.
+323	core	Shields up, weapons online.
+348	core	Valkyrie prepared.
+435	core	Prepped and ready.
+414	core	Access code accepted.
+716	core	Charge is set.
+399	damage	Access code denied.
+424	damage	Damn. Door's locked.
+416	damage	Uh, oops.
+397	damage	Uhh... How do you work this damn thing?
+400	damage	I hate computers.
+401	damage	Oh, another computer says hit any key. Well, which one's the any key?
+427	damage	Oh man, how the hell are we gonna get by all them zerglings?
+425	damage	Oh, uh, oh, man! Poor Johnny.
+410	damage	Hey, who's messing with the computers? Oh.
+291	warn	Nuclear launch detected.
+292	warn	Abandoning auxiliary structure.
+222	warn	Heads up, we got company.
+359	warn	Look out!
+405	warn	Intruders! Alert the GLAV pilots!
+437	warn	Unauthorized entry detected.
+364	warn	Self-destruct sequence initiated.
+366	warn	Five seconds to detonation.
+365	warn	10 seconds to detonation.
+426	warn	Reactor core shutdown sequence initiated.
+525	warn	The hive cluster is under attack.
+361	warn	Wait! Don't open the doors yet!
+224	warn	We gotta shake this lockdown pronto! Medic, restore us!
+421	eject	I'm outta here!
+537	eject	I'm gone.
+363	eject	Let's get out of here.
+409	eject	Help!
+210	enter	Receiving incoming transmission.
+259	enter	Go ahead, HQ.
+301	enter	Ah, greetings command.
+428	enter	How y'all doing?
+656	enter	How y'all doing?
+124	enter	What's up?
+429	enter	What's up?
+657	enter	What's up?
+298	enter	Ghost report.
+322	enter	Identify yourself.
+293	enter	Hey, how'd I get here?
+325	enter	Set a course.
+295	enter	Hang on, we're in for some chop.
+345	enter	Hang on, we're in for some chop.
+362	follow	Let's go!
+434	follow	Let's move!
+433	follow	We gotta move.
+538	follow	Go, go, go!
+582	follow	Great. Let's get moving.
+214	guard	Of course, Admiral.
+376	guard	Of course, Admiral.
+367	guard	Security camera is activated.
+51	guard	Make use of me.
+184	guard	Indeed.
+273	mount	Reinforcements already in transit, just sit tight.
+305	mount	Reinforcements already in transit, just sit tight.
+197	mount	Transmat completed. Receiving incoming transmission.
+355	mount	Hey, they must be the rescue unit! Open the door!
+205	dismount	Mission successful, Admiral.
+559	dismount	Good work, Tim.
+415	dismount	Thanks.
+499	misc	How do you turn, Stan? Gettin' jiggy with it.
+72	misc	Yeah, well, I'm a man of action. What can I say?
+575	misc	You boys should really learn to play nice with each other.
+398	misc	Computer, locate Admiral Stukov!

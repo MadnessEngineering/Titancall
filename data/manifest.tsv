@@ -89,17 +89,13 @@ jarvis	critical-damage.wav	damage	damage	critical damage	filename
 jarvis	recommend-regen.wav	damage	damage	recommend regen	filename
 jarvis	warning-critical-damage-sustined.wav	damage	damage	warning critical damage sustined	filename
 jarvis	warning-you-have-sustained-heavy-damage.wav	damage	damage	warning you have sustained heavy damage	filename
+jarvis	friendly-pilot-has-detached-from-your-titan.wav	dismount	dismount	friendly pilot has detached from your titan	filename
+jarvis	friendly-pilot-has-left-your-titan.wav	dismount	dismount	friendly pilot has left your titan	filename
+jarvis	friendly-pilot-is-clear-of-your-titan.wav	dismount	dismount	friendly pilot is clear of your titan	filename
+jarvis	friendly-pilot-is-now-clear-of-your-titan.wav	dismount	dismount	friendly pilot is now clear of your titan	filename
 jarvis	autoejecting.wav	eject	eject	autoejecting	filename
 jarvis	eject-override.wav	eject	eject	eject override	filename
 jarvis	forcing-pilot-eject.wav	eject	eject	forcing pilot eject	filename
-jarvis	friendly-pilot-on-board.wav	enter	mount	friendly pilot on board	filename
-jarvis	friendly-pilot-on-your-titan.wav	enter	mount	friendly pilot on your titan	filename
-jarvis	friendly-pilot-riding-on-board.wav	enter	mount	friendly pilot riding on board	filename
-jarvis	i-am-detectig-a-friendly-pilot-onboard.wav	enter	mount	i am detectig a friendly pilot onboard	filename
-jarvis	friendly-pilot-has-detached-from-your-titan.wav	exit	dismount	friendly pilot has detached from your titan	filename
-jarvis	friendly-pilot-has-left-your-titan.wav	exit	dismount	friendly pilot has left your titan	filename
-jarvis	friendly-pilot-is-clear-of-your-titan.wav	exit	dismount	friendly pilot is clear of your titan	filename
-jarvis	friendly-pilot-is-now-clear-of-your-titan.wav	exit	dismount	friendly pilot is now clear of your titan	filename
 jarvis	have-a-nice-day.wav	exit	exit	have a nice day	filename
 jarvis	a-friendly-titan-is-attacking-your-target.wav	follow	follow	a friendly titan is attacking your target	filename
 jarvis	a-pilot-is-attackig-your-target.wav	follow	follow	a pilot is attackig your target	filename
@@ -118,6 +114,10 @@ jarvis	your-cord-rocket-will-now-fire-cluster-munitions.wav	misc	misc	your cord 
 jarvis	your-missle-pod-now-has-increased-ammution.wav	misc	misc	your missle pod now has increased ammution	filename
 jarvis	your-thriple-threat-wil-now-fire-magnetic-gernades.wav	misc	misc	your thriple threat wil now fire magnetic gernades	filename
 jarvis	your-vortex-shield-will-now-autoreflect-incoming-fire.wav	misc	misc	your vortex shield will now autoreflect incoming fire	filename
+jarvis	friendly-pilot-on-board.wav	mount	mount	friendly pilot on board	filename
+jarvis	friendly-pilot-on-your-titan.wav	mount	mount	friendly pilot on your titan	filename
+jarvis	friendly-pilot-riding-on-board.wav	mount	mount	friendly pilot riding on board	filename
+jarvis	i-am-detectig-a-friendly-pilot-onboard.wav	mount	mount	i am detectig a friendly pilot onboard	filename
 jarvis	caution.wav	warn	warn	caution	filename
 jarvis	recommend-maintaining-a-safe-distance-from-allies.wav	warn	warn	recommend maintaining a safe distance from allies	filename
 jarvis	warning-colateral-damage-sustained-from-arc-cannon-fire-recommend-maintaining-a-safe-distance-from-allies.wav	warn	warn	warning colateral damage sustained from arc cannon fire recommend maintaining a safe distance from allies	filename
@@ -142,10 +142,10 @@ legion	warning-heavy-damage-sustaied.wav	damage	damage	warning heavy damage sust
 legion	warning-major-damage-sustained.wav	damage	damage	warning major damage sustained	filename
 legion	warning-serv-reactor-damage-sustatined-reactor-is-exposed.wav	damage	damage	warning serv reactor damage sustatined reactor is exposed	filename
 legion	warning-serv-reactor-damage-sustatined.wav	damage	damage	warning serv reactor damage sustatined	filename
+legion	friendly-pilot-has-left-the-hull.wav	dismount	dismount	friendly pilot has left the hull	filename
 legion	eject-you-are-engaging-multi-titans.wav	eject	eject	eject you are engaging multi titans	filename
 legion	eject.wav	eject	eject	eject	filename
 legion	eject2.wav	eject	eject	eject2	filename
-legion	friendly-pilot-on-extiorer.wav	enter	mount	friendly pilot on extiorer	filename
 legion	manual-targeting-restroed.wav	enter	enter	manual targeting restroed	filename
 legion	pilot-mode-engaged-manual-targeting-restored.wav	enter	enter	pilot mode engaged manual targeting restored	filename
 legion	pilot-mode-engaged.wav	enter	enter	pilot mode engaged	filename
@@ -156,7 +156,6 @@ legion	transfering-controls-to-manual-operation.wav	enter	enter	transfering cont
 legion	we-are-better-together.wav	enter	enter	we are better together	filename
 legion	welcome-back-pilot-mode-online.wav	enter	enter	welcome back pilot mode online	filename
 legion	welcome-back.wav	enter	enter	welcome back	filename
-legion	friendly-pilot-has-left-the-hull.wav	exit	dismount	friendly pilot has left the hull	filename
 legion	engaging-follow-mode.wav	follow	follow	engaging follow mode	filename
 legion	engaging-follow-mode2.wav	follow	follow	engaging follow mode2	filename
 legion	follow-mode-engaged.wav	follow	follow	follow mode engaged	filename
@@ -164,6 +163,7 @@ legion	providing-backup.wav	follow	follow	providing backup	filename
 legion	providing-backup2.wav	follow	follow	providing backup2	filename
 legion	engaging-gaurd-mode.wav	guard	guard	engaging gaurd mode	filename
 legion	gaurdmode-activiated-weponds-hot.wav	guard	guard	gaurdmode activiated weponds hot	filename
+legion	friendly-pilot-on-extiorer.wav	mount	mount	friendly pilot on extiorer	filename
 legion	multiple-titans-are-engaging-you.wav	warn	warn	multiple titans are engaging you	filename
 legion	outnumbered-2-to-1-ammo-feeds-nominal.wav	warn	warn	outnumbered 2 to 1 ammo feeds nominal	filename
 legion	pilot-we-are-outnumbered-2-to-1.wav	warn	warn	pilot we are outnumbered 2 to 1	filename
@@ -341,6 +341,89 @@ scorch	warning-core-reactor-overload-near.wav	warn	warn	warning core reactor ove
 scorch	warning-significiant-damage-sustatined.wav	warn	warn	warning significiant damage sustatined	filename
 scorch	warning-there-is-a-hostile-pilot-on-the-hull.wav	warn	warn	warning there is a hostile pilot on the hull	filename
 scorch	you-are-outnumbered.wav	warn	warn	you are outnumbered	filename
+terran	fire-it-up.wav	attack	attack	fire it up	filename
+terran	ignition-commencing.wav	attack	attack	ignition commencing	filename
+terran	live-for-the-swarm.wav	attack	attack	live for the swarm	filename
+terran	need-a-light.wav	attack	attack	need a light	filename
+terran	power-overwhelming.wav	attack	attack	power overwhelming	filename
+terran	prepare-em-yourself.wav	attack	attack	prepare em yourself	filename
+terran	prepare-to-die.wav	attack	attack	prepare to die	filename
+terran	wax-em-boys.wav	attack	attack	wax em boys	filename
+terran	access-code-accepted.wav	core	core	access code accepted	filename
+terran	battle-cruiser-operational-1.wav	core	core	battle cruiser operational 1	filename
+terran	battle-cruiser-operational.wav	core	core	battle cruiser operational	filename
+terran	charge-is-set.wav	core	core	charge is set	filename
+terran	prepped-and-ready.wav	core	core	prepped and ready	filename
+terran	shields-up-weapons-online.wav	core	core	shields up weapons online	filename
+terran	valkyrie-prepared.wav	core	core	valkyrie prepared	filename
+terran	access-code-denied.wav	damage	damage	access code denied	filename
+terran	damn-door-s-locked.wav	damage	damage	damn door s locked	filename
+terran	hey-who-s-messing-with-the-computers-oh.wav	damage	damage	hey who s messing with the computers oh	filename
+terran	i-hate-computers.wav	damage	damage	i hate computers	filename
+terran	oh-another-computer-says-hit-any-key-well-which-one-s-the-any-key.wav	damage	damage	oh another computer says hit any key well which one s the any key	filename
+terran	oh-man-how-the-hell-are-we-gonna-get-by-all-them-zerglings.wav	damage	damage	oh man how the hell are we gonna get by all them zerglings	filename
+terran	oh-uh-oh-man-poor-johnny.wav	damage	damage	oh uh oh man poor johnny	filename
+terran	uh-oops.wav	damage	damage	uh oops	filename
+terran	uhh-how-do-you-work-this-damn-thing.wav	damage	damage	uhh how do you work this damn thing	filename
+terran	good-work-tim.wav	dismount	dismount	good work tim	filename
+terran	mission-successful-admiral.wav	dismount	dismount	mission successful admiral	filename
+terran	thanks.wav	dismount	dismount	thanks	filename
+terran	heh-check-that-out-they-re-trapped.wav	down	down	heh check that out they re trapped	filename
+terran	hehehe-i-love-the-smell-of-toasted-zerglings-in-the-morning.wav	down	down	hehehe i love the smell of toasted zerglings in the morning	filename
+terran	never-know-what-hit-em.wav	down	down	never know what hit em	filename
+terran	now-reap-the-whirlwind.wav	down	down	now reap the whirlwind	filename
+terran	room-secure-sir.wav	down	down	room secure sir	filename
+terran	say-goodnight-stukov.wav	down	down	say goodnight stukov	filename
+terran	you-called-down-the-thunder.wav	down	down	you called down the thunder	filename
+terran	help.wav	eject	eject	help	filename
+terran	i-m-gone.wav	eject	eject	i m gone	filename
+terran	i-m-outta-here.wav	eject	eject	i m outta here	filename
+terran	let-s-get-out-of-here.wav	eject	eject	let s get out of here	filename
+terran	ah-greetings-command.wav	enter	enter	ah greetings command	filename
+terran	ghost-report.wav	enter	enter	ghost report	filename
+terran	go-ahead-hq.wav	enter	enter	go ahead hq	filename
+terran	hang-on-we-re-in-for-some-chop-1.wav	enter	enter	hang on we re in for some chop 1	filename
+terran	hang-on-we-re-in-for-some-chop.wav	enter	enter	hang on we re in for some chop	filename
+terran	hey-how-d-i-get-here.wav	enter	enter	hey how d i get here	filename
+terran	how-y-all-doing-1.wav	enter	enter	how y all doing 1	filename
+terran	how-y-all-doing.wav	enter	enter	how y all doing	filename
+terran	identify-yourself.wav	enter	enter	identify yourself	filename
+terran	receiving-incoming-transmission.wav	enter	enter	receiving incoming transmission	filename
+terran	set-a-course.wav	enter	enter	set a course	filename
+terran	what-s-up-1.wav	enter	enter	what s up 1	filename
+terran	what-s-up-2.wav	enter	enter	what s up 2	filename
+terran	what-s-up.wav	enter	enter	what s up	filename
+terran	go-go-go.wav	follow	follow	go go go	filename
+terran	great-let-s-get-moving.wav	follow	follow	great let s get moving	filename
+terran	let-s-go.wav	follow	follow	let s go	filename
+terran	let-s-move.wav	follow	follow	let s move	filename
+terran	we-gotta-move.wav	follow	follow	we gotta move	filename
+terran	indeed.wav	guard	guard	indeed	filename
+terran	make-use-of-me.wav	guard	guard	make use of me	filename
+terran	of-course-admiral-1.wav	guard	guard	of course admiral 1	filename
+terran	of-course-admiral.wav	guard	guard	of course admiral	filename
+terran	security-camera-is-activated.wav	guard	guard	security camera is activated	filename
+terran	computer-locate-admiral-stukov.wav	misc	misc	computer locate admiral stukov	filename
+terran	how-do-you-turn-stan-gettin-jiggy-with-it.wav	misc	misc	how do you turn stan gettin jiggy with it	filename
+terran	yeah-well-i-m-a-man-of-action-what-can-i-say.wav	misc	misc	yeah well i m a man of action what can i say	filename
+terran	you-boys-should-really-learn-to-play-nice-with-each-other.wav	misc	misc	you boys should really learn to play nice with each other	filename
+terran	hey-they-must-be-the-rescue-unit-open-the-door.wav	mount	mount	hey they must be the rescue unit open the door	filename
+terran	reinforcements-already-in-transit-just-sit-tight-1.wav	mount	mount	reinforcements already in transit just sit tight 1	filename
+terran	reinforcements-already-in-transit-just-sit-tight.wav	mount	mount	reinforcements already in transit just sit tight	filename
+terran	transmat-completed-receiving-incoming-transmission.wav	mount	mount	transmat completed receiving incoming transmission	filename
+terran	10-seconds-to-detonation.wav	warn	warn	10 seconds to detonation	filename
+terran	abandoning-auxiliary-structure.wav	warn	warn	abandoning auxiliary structure	filename
+terran	five-seconds-to-detonation.wav	warn	warn	five seconds to detonation	filename
+terran	heads-up-we-got-company.wav	warn	warn	heads up we got company	filename
+terran	intruders-alert-the-glav-pilots.wav	warn	warn	intruders alert the glav pilots	filename
+terran	look-out.wav	warn	warn	look out	filename
+terran	nuclear-launch-detected.wav	warn	warn	nuclear launch detected	filename
+terran	reactor-core-shutdown-sequence-initiated.wav	warn	warn	reactor core shutdown sequence initiated	filename
+terran	self-destruct-sequence-initiated.wav	warn	warn	self destruct sequence initiated	filename
+terran	the-hive-cluster-is-under-attack.wav	warn	warn	the hive cluster is under attack	filename
+terran	unauthorized-entry-detected.wav	warn	warn	unauthorized entry detected	filename
+terran	wait-don-t-open-the-doors-yet.wav	warn	warn	wait don t open the doors yet	filename
+terran	we-gotta-shake-this-lockdown-pronto-medic-restore-us.wav	warn	warn	we gotta shake this lockdown pronto medic restore us	filename
 tone	40mm-armed.wav	attack	attack	40mm armed	filename
 tone	good-targeting-pilot.wav	attack	attack	good targeting pilot	filename
 tone	paint-as-many-targets-as-you-can-with-the-40mm.wav	attack	attack	paint as many targets as you can with the 40mm	filename
