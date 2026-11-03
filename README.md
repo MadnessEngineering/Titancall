@@ -37,14 +37,18 @@ writable completions dir, or prints the line to add — never edits your rc file
 Voice library lives outside the repo (it's ~400M of `.wav`) at
 `~/.local/share/titancall/sounds/<titan>/<event>/`. Drop new lines there and run `titancall normalize`.
 
-## Titans (11)
+## Titans (13)
 
-`bt · ion · jarvis · legion · monarch · northstar · portal · ronin · scorch · terran · tone`
+`bt · ion · jarvis · legion · monarch · northstar · portal · protoss · ronin · scorch · terran · tone · zerg`
 
-`terran` isn't a Titan — it's 83 StarCraft: Brood War lines (Firebat, Ghost, Battlecruiser, mission-chatter
-panic like "Uhh... how do you work this damn thing?"). Only the Brood War disc's campaign + expansion audio,
-not the base-game unit barks, so it's deliberately thin. Provenance and how to rebuild it:
-`data/terran-source.tsv` + `scripts/mpq_extract.py`.
+`terran`, `protoss` and `zerg` aren't Titans — they're StarCraft voices, ripped from the two game discs
+(Brood War + the original). `terran` is the full one (~258 lines: Marine, SCV, Firebat, Ghost, Advisor, plus
+mission-chatter panic like "Uhh... how do you work this damn thing?"). `protoss` (~69) is Zealot/Templar/Advisor
+speech. `zerg` is deliberately thin (~20): Zerg units are creature noise, so only the Advisor and Cerebrate
+speech got named; the growls are unsorted and degrade through the bucket fallbacks. Sorted by keyword rules and
+hand-corrected, so expect the odd mis-race or mis-bucket — move them in `titancall ui`.
+Provenance and how to rebuild: `data/terran-source.tsv` (Brood War disc), `data/starcraft-source.tsv` (original
+disc), `scripts/mpq_extract.py`.
 
 ## Events
 

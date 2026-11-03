@@ -1,0 +1,291 @@
+# starcraft voice provenance (reference only — nothing reads this file; buckets live in buckets.tsv)
+# source: archive.org item StarCraftUSA -> bin/cue (MODE1/2352) -> INSTALL.EXE (MPQ) -> nested File00000580.mpq (the game's data MPQ, no listfile)
+# extract: python3 scripts/mpq_extract.py INSTALL.EXE out File00000580.mpq ; python3 scripts/mpq_extract.py out/File00000580.mpq wavs .wav
+# columns: id (File<id zero-padded to 8>.wav from the nested MPQ) <TAB> race <TAB> bucket <TAB> transcript (whisper small.en, hand-corrected)
+# race is assigned by id range (the MPQ groups units in order) and bucket by keyword rules, so spot-check before trusting a row
+# clips leveled to -18 LUFS, 44.1k mono: ffmpeg -af loudnorm=I=-18:TP=-1.5:LRA=11 -ar 44100 -ac 1
+2057	protoss	damage	You have not enough minerals.
+2058	protoss	damage	You require more vespene gas.
+2059	protoss	damage	You must construct additional pylons.
+2060	protoss	damage	Not enough energy.
+2061	protoss	warn	We are under attack!
+2062	protoss	warn	Your warriors have engaged the enemy.
+2063	protoss	down	Research complete.
+2064	protoss	warn	Nuclear launch detected.
+2065	protoss	down	Upgrade complete!
+2081	protoss	guard	We are vigilant.
+2092	protoss	down	The merging is complete.
+2093	protoss	attack	We burn.
+2096	protoss	attack	Power overwhelming.
+2097	protoss	attack	DESTROY!
+2098	protoss	attack	Annihilate!
+2099	protoss	attack	Obliterate!
+2100	protoss	attack	ARADICATE
+2124	protoss	core	Carrier has arrived!
+2126	protoss	enter	Your command.
+2130	protoss	follow	Go Go!
+2132	protoss	follow	Affirmative!
+2135	protoss	damage	Do not provoke me to violence.
+2140	protoss	guard	I'm waiting.
+2144	protoss	follow	So be it.
+2145	protoss	follow	Very well.
+2147	protoss	warn	Unauthorized transmission.
+2151	protoss	guard	I have returned.
+2152	protoss	enter	Receiving.
+2153	protoss	guard	awaiting instructions.
+2160	protoss	follow	Confirmed.
+2161	protoss	down	Initiated.
+2167	protoss	attack	I fear no enemy.
+2169	protoss	attack	I fear not death.
+2172	protoss	enter	Your command?
+2173	protoss	enter	What would you ask of me?
+2174	protoss	attack	I hunger for battle.
+2178	protoss	follow	As you will!
+2180	protoss	attack	I fear no enemy!
+2182	protoss	attack	I fear not death.
+2186	protoss	enter	What would you ask of me?
+2187	protoss	attack	I hunger for battle.
+2191	protoss	follow	As you will!
+2192	protoss	enter	Speak quickly, executor.
+2196	protoss	follow	Yes, executor.
+2197	protoss	guard	I hear you.
+2198	protoss	enter	How may I help?
+2199	protoss	enter	Your will.
+2200	protoss	follow	Of course.
+2201	protoss	follow	It shall be done.
+2202	protoss	attack	For Adun!
+2214	protoss	eject	Goodbye!
+2225	protoss	warn	Signal unstable.
+2231	protoss	guard	I'm waiting for your hand.
+2233	protoss	warn	Contact!
+2237	protoss	follow	You've been acknowledged.
+2238	protoss	follow	It will be done.
+2260	protoss	enter	Speak quickly, executor.
+2264	protoss	follow	Yes, executor.
+2265	protoss	guard	I hear you.
+2266	protoss	enter	How may I help?
+2267	protoss	enter	Your will?
+2268	protoss	follow	Of course.
+2269	protoss	follow	It shall be done.
+2270	protoss	attack	For Adun!
+2325	protoss	attack	My life for Aiur!
+2341	protoss	enter	Your orders, Templar.
+2343	protoss	attack	I do this for Aiur.
+2345	protoss	follow	It will be done.
+2346	protoss	attack	Entaro Adun.
+2347	terran	damage	Not enough minerals.
+2348	terran	damage	Insufficient vespene gas.
+2349	terran	damage	Additional supply depots required.
+2350	terran	warn	Landing sequence interrupted.
+2351	terran	warn	unacceptable landing zone
+2352	terran	damage	Not enough energy.
+2353	terran	warn	Base is under attack.
+2354	terran	warn	Your forces are under attack.
+2355	terran	down	Research complete.
+2356	terran	down	Add-on complete.
+2357	terran	warn	Nuclear launch detected.
+2358	terran	warn	Abandoning auxiliary structure.
+2359	terran	down	Upgrade complete.
+2360	terran	core	Nuclear missile ready.
+2362	terran	enter	Identify yourself.
+2363	terran	core	Shields up, weapons online.
+2364	terran	misc	Another grip with shields. We'll then buckle up.
+2367	terran	core	Battle Cruiser Operational
+2368	terran	enter	All crews reporting.
+2369	terran	enter	Receiving transmission.
+2370	terran	enter	Good day, Commander.
+2371	terran	core	Healing frequency is open.
+2374	terran	follow	Make it happen.
+2375	terran	enter	Set a course.
+2395	terran	misc	I wanna be all I can be.
+2396	terran	misc	I tell you what, I think I'll join up.
+2397	terran	damage	I'm a little claustrophobic though.
+2398	terran	enter	Hope they don't put me in any tight spaces.
+2399	terran	misc	Ah, what the hell? I need that college money.
+2400	terran	enter	Hey, how'd I get here?
+2401	terran	enter	Hey there!
+2402	terran	enter	How y'all doing?
+2403	terran	enter	What's up?
+2405	terran	eject	I'm going.
+2406	terran	follow	No sweat.
+2408	terran	follow	Alright.
+2409	terran	follow	Sure thing!
+2411	terran	misc	When removing your overhead luggage, please be careful.
+2412	terran	misc	In case of a water landing, you may be used as a flotation device.
+2413	terran	misc	To hurl chunks, please use the vomit bag in front of you.
+2414	terran	misc	Keep your arms and legs inside until this ride comes to a full and complete stop.
+2416	terran	enter	Go ahead, HQ.
+2417	terran	guard	I'm listening.
+2421	terran	misc	Hang on, we're in for some chop.
+2423	terran	misc	Buckle up.
+2424	terran	misc	Strap yourselves in, boys.
+2425	terran	follow	I copy that.
+2427	terran	misc	Been a General for 15 years.
+2428	terran	misc	Now I'm taking orders from a pup.
+2429	terran	damage	This Korhal outfit's a mess.
+2431	terran	misc	That's what you need.
+2435	terran	damage	Make up your mind.
+2439	terran	follow	Alright then.
+2441	terran	misc	Been a General for 15 years.
+2442	terran	misc	Now I'm taking orders from a pup.
+2443	terran	damage	This Korhal outfit's a mess.
+2445	terran	misc	That's what you need.
+2449	terran	damage	Make up your mind.
+2453	terran	follow	Alright then.
+2459	terran	damage	Is something burning?
+2461	terran	attack	I love the smell of napalm.
+2462	terran	misc	Nothing like a good smoke.
+2463	terran	misc	But you're trying to get invited to my next barbecue.
+2464	terran	misc	Got any questions about propane?
+2465	terran	misc	or propane accessories.
+2466	terran	attack	Need a light?
+2467	terran	attack	Fire it up!
+2470	terran	attack	I want to turn up the heat.
+2471	terran	follow	Naturally.
+2472	terran	attack	Slammin'!
+2473	terran	follow	You got it.
+2474	terran	attack	Let's burn.
+2479	terran	down	You called down the Thunder.
+2480	terran	down	Now reap the whirlwind.
+2482	terran	attack	I'm about to overload my aggression inhibitors.
+2483	terran	attack	Somebody call for an exterminator?
+2484	terran	enter	Ghost Report.
+2485	terran	guard	I'm here.
+2487	terran	attack	Call the shot.
+2489	terran	eject	I'm gone.
+2490	terran	down	Never know what hit 'em.
+2491	terran	enter	I'm all over it.
+2493	terran	core	Mil-Spec ED-209 on.
+2494	terran	core	Checklist protocol initiated.
+2495	terran	core	running level 1 diagnostic.
+2496	terran	misc	USDA selected.
+2497	terran	misc	FDIC approved.
+2498	terran	down	Checklist completed. SOB.
+2499	terran	core	Goliath Online.
+2500	terran	enter	Go ahead, TACOM.
+2501	terran	core	Coming online.
+2502	terran	enter	Channel open.
+2503	terran	core	Systems functional.
+2504	terran	follow	Acknowledged, it's you.
+2505	terran	core	Navcomm locked.
+2506	terran	follow	Confirmed.
+2507	terran	core	Target designated.
+2511	terran	misc	Doesn't take a telepath to know what you're thinking.
+2512	terran	misc	You get off on annoying people, don't you?
+2515	terran	enter	Lieutenant Kerrigan reporting.
+2516	terran	enter	What now?
+2517	terran	guard	I'm waiting on you!
+2518	terran	core	I'm ready.
+2519	terran	follow	I gotcha.
+2520	terran	misc	thinking the same thing.
+2521	terran	follow	It'd be a pleasure.
+2525	terran	follow	We gotta move.
+2526	terran	guard	Are you gonna give me orders?
+2528	terran	attack	I vote we frag this commander.
+2529	terran	damage	How do I get out of this chickenshit outfit?
+2530	terran	attack	You want a piece of me, boy?
+2531	terran	misc	If it weren't for these damn neural implants, you'd be a smoking crater by now.
+2532	terran	attack	You want a piece of me, boy?
+2533	terran	misc	I have some stuff on you.
+2536	terran	guard	Standing by.
+2537	terran	core	Jacked up and good to go.
+2538	terran	attack	Give me something to shoot.
+2539	terran	follow	Go, go, go!
+2540	terran	follow	Let's move!
+2541	terran	follow	Outstanding.
+2542	terran	attack	Rock and roll!
+2547	terran	enter	I'm just curious, why am I so good?
+2548	terran	misc	I gotta get me one of these.
+2549	terran	misc	You know who the best starfighter in the fleet is.
+2550	terran	misc	yours truly.
+2552	terran	attack	I am invincible, that's right.
+2553	terran	guard	Wraith awaiting launch orders.
+2554	terran	enter	Go ahead, command.
+2555	terran	enter	Transmit Coordinates.
+2556	terran	guard	Standing by.
+2557	terran	enter	Reporting in.
+2559	terran	attack	and attack formation.
+2560	terran	follow	Roger
+2561	terran	core	Vector locked in
+2564	terran	damage	Hey, quit it!
+2565	terran	damage	What's your problem, man?
+2566	terran	enter	Hello, Commander. Do you mind?
+2567	terran	damage	I knew I should have stayed in bed this morning.
+2568	terran	enter	Raynor here.
+2569	terran	enter	This is Jimmy.
+2570	terran	guard	Anytime you're ready.
+2571	terran	enter	Go ahead, Commander.
+2573	terran	follow	Right on.
+2575	terran	follow	Oh yeah!
+2577	terran	damage	Hey, quit it!
+2578	terran	damage	What's your problem, man?
+2580	terran	damage	I knew I should have stayed in bed this morning.
+2581	terran	enter	Raynor here.
+2582	terran	enter	This is Jimmy.
+2583	terran	guard	anytime you're ready.
+2584	terran	enter	Go ahead, Commander.
+2586	terran	follow	Right on.
+2588	terran	follow	Oh yeah!
+2595	terran	damage	I can't build it. Something's in the way.
+2596	terran	damage	I can't build there.
+2599	terran	damage	Come again, captain.
+2600	terran	damage	I'm not reading you clearly.
+2604	terran	eject	I told them I was claustrophobic. I gotta get outta here!
+2605	terran	misc	I'm locked in here tighter than a frog's butt in a watermelon seed fight.
+2606	terran	core	SCV, good to go, sir.
+2609	terran	follow	Yes, sir.
+2611	terran	damage	Can I read you?
+2613	terran	follow	Affirmative.
+2614	terran	follow	Roger that.
+2615	terran	follow	Right away, sir.
+2616	terran	follow	Orders received.
+2619	terran	attack	I'm about to drop the hammer!
+2620	terran	attack	and dispense some indiscriminate justice!
+2621	terran	damage	What is your major malfunction?
+2622	terran	core	Ready to roll out!
+2625	terran	follow	Yes, sir!
+2627	terran	enter	Identify target!
+2629	terran	follow	Move it!
+2632	terran	follow	Absolutely!
+2637	terran	misc	I like the cut of your jib.
+2638	terran	misc	E equals MC... Doh, let me get my notepad.
+2639	terran	misc	Fusion, eh? I'll have to remember that.
+2641	terran	damage	I think we may have a gas leak.
+2642	terran	damage	Do any of you fools know how to shut off this infernal contraption?
+2644	terran	enter	Explorer reporting.
+2645	terran	enter	Ah, greetings command.
+2646	terran	enter	Transmit orders!
+2647	terran	enter	Receiving headquarters.
+2648	terran	warn	We have you on visual.
+2649	terran	follow	Let's roll!
+2650	terran	follow	Excellent!
+2652	terran	follow	Affirmative, sir.
+2656	terran	enter	Something you wanted!
+2657	terran	misc	I don't have time to fuck around!
+2659	terran	attack	And I'll scrap you along with the aliens!
+2660	terran	attack	All right, bring it on!
+2661	terran	enter	What do you want?
+2663	terran	follow	I'll read you, sir.
+2664	terran	enter	Something on your mind?
+2665	terran	eject	Yeah, I'm going.
+2667	terran	follow	No problem.
+2669	zerg	damage	We require more minerals.
+2670	zerg	damage	We require more Vespene gas.
+2671	zerg	damage	Spawn more overlords!
+2672	zerg	damage	Not enough energy.
+2673	zerg	warn	The hive cluster is under attack.
+2674	zerg	warn	Our forces are under attack.
+2675	zerg	down	Evolution complete.
+2676	zerg	warn	Nuclear launch detected!
+2726	zerg	attack	Live for the swarm!
+2727	zerg	attack	Ready to chew!
+2728	zerg	attack	Prepare to die.
+2733	zerg	follow	Gladly.
+2734	zerg	attack	FOR THE OVERMIND!
+2873	zerg	misc	But don't think that I need you.
+2875	zerg	attack	I'll kill you myself.
+2876	zerg	follow	Yes, Cerebrate!
+2878	zerg	enter	What is it now?
+2879	zerg	guard	I'm listening.
+2882	zerg	follow	On my way.
+2883	zerg	follow	Alright!
