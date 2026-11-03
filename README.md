@@ -210,12 +210,12 @@ jarvis     61 core        2     targeting
 legion     52 damage     13     weapons energized
 monarch    36 down        3
 attack <- events: working
- tab pane  enter/p play  space mark  m move  x clear  / filter  r reload  1-4 screens  q quit
+ tab pane  enter/p play  space mark  m move  v voice  x clear  / filter  r reload  1-4 screens  q quit
 ```
 
 | screen | does |
 |--------|------|
-| **1 browse** | three panes (titan / bucket / wav). `enter` or `p` auditions a clip, `space` marks, `m` moves marked wavs to another bucket, `/` filters by transcript, `* all` lists every wav of a Titan at once |
+| **1 browse** | three panes (titan / bucket / wav). `enter` or `p` auditions a clip, `space` marks, `m` moves marked wavs to another bucket, `v` moves them to another *voice* (then asks for its bucket — for a line that landed in the wrong race), `/` filters by transcript, `* all` lists every wav of a Titan at once |
 | **2 events** | the alias layer: `enter` retargets an event at any bucket **or group**, `n` adds one, `d` removes, `p` fires it through the CLI. The `WAVS` column is how many clips this project's Titan can actually draw — `0` means that event is effectively silent for this voice |
 | **3 groups** | `n` creates a group, `enter` toggles member buckets, `d` deletes, `p` previews. `USED BY` shows which events depend on it |
 | **4 hooks** | read-only chain `Claude hook → event → target → wavs`, plus whether each hook is really wired in `~/.claude/settings.json`. `enter` retargets the *event* — hook wiring itself stays with `./install-hooks.sh` |
@@ -226,6 +226,8 @@ attack <- events: working
 **Moves are reviewable.** Reassigning a wav appends a row to the git-tracked `data/overrides.tsv`
 and re-runs `build_manifest.py --apply`, which physically moves the file and regenerates
 `data/buckets.tsv`. Nothing is hidden in a database: `git diff data/` shows exactly what you re-bucketed.
+A voice move (`v`) writes an optional 4th column (the destination voice) and the row is dropped once it has
+been applied — the file's new home in `buckets.tsv` is the record.
 
 ## Bulk re-sorting — `titancall review`
 

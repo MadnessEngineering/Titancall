@@ -169,6 +169,49 @@ def user_overrides():
     return ov
 
 
+def user_dests():
+    """Optional 4th column of overrides.tsv -> {(titan, slug): dest_titan}: relocate the wav to ANOTHER
+    voice (its bucket is the 3rd column). Kept beside user_overrides() rather than inside it so the
+    existing (titan, slug) -> bucket consumers don't change shape."""
+    dests = {}
+    if not os.path.exists(USER_OVERRIDES):
+        return dests
+    with open(USER_OVERRIDES) as f:
+        for line in f:
+            if not line.strip() or line.lstrip().startswith("#"):
+                continue
+            parts = line.rstrip("\n").split("\t")
+            if len(parts) >= 4 and parts[3].strip():
+                dests[(parts[0], parts[1])] = parts[3].strip()
+    return dests
+
+
+OVERRIDES_HEADER = ("# titan\tslug\tbucket\t[dest_titan] — written by `titancall ui` / `--import-review`; merged OVER the\n"
+                    "# curated OVERRIDES dict in build_manifest.py, so these always win. dest_titan relocates the wav\n"
+                    "# to another voice (the ui's `v` key); that row is dropped once applied.\n"
+                    "# Hand-edit freely, then run `python3 scripts/build_manifest.py --apply`.\n")
+
+
+def write_user_overrides(ov, dests, header):
+    """Atomic temp+rename, sorted. Always carries the dest column through — `--import-review` used to
+    rewrite this file from the 3-column view alone, which would silently drop every voice move."""
+    tmp = USER_OVERRIDES + ".tmp"
+    with open(tmp, "w") as f:
+        f.write(header)
+        for (titan, slug), bucket in sorted(ov.items()):
+            dest = dests.get((titan, slug))
+            f.write(f"{titan}\t{slug}\t{bucket}" + (f"\t{dest}" if dest else "") + "\n")
+    os.replace(tmp, USER_OVERRIDES)
+
+
+def voice_moves(rows):
+    """[(titan, fn, cur_bucket, dest_titan, dest_bucket)] for rows whose override names another voice."""
+    dests = user_dests()
+    return [(t, fn, cur, dests[(t, slug)], prop)
+            for t, fn, slug, cur, prop, tr, src in rows
+            if dests.get((t, slug), t) != t]
+
+
 def walk():
     user = user_overrides()
     rows = []
@@ -287,15 +330,48 @@ def import_review(rows):
     if not changed:
         print("review.csv matches the library — nothing to change")
         return False
-    with open(USER_OVERRIDES, "w") as f:
-        f.write("# titan\tslug\tbucket — from `--import-review` / `titancall ui`; merged OVER the\n"
-                "# curated OVERRIDES dict in build_manifest.py, so these always win.\n")
-        for (titan, slug), bucket in sorted(ov.items()):
-            f.write(f"{titan}\t{slug}\t{bucket}\n")
+    write_user_overrides(ov, user_dests(), OVERRIDES_HEADER)
     print(f"{len(changed)} reclassification(s) from review.csv:")
     for titan, old, new, fn in changed:
         print(f"  {titan}: {old} -> {new}  {fn}")
     return True
+
+
+def apply_voice_moves(vmoves):
+    """Relocate wavs to another voice. Validates every row before touching a file, like --import-review:
+    one bad destination aborts the whole batch. A name clash in the destination gets -1/-2 like bucket moves."""
+    bad = []
+    for t, fn, cur, dest, dbk in vmoves:
+        if dest != os.path.basename(dest) or dest in ("", ".", ".."):
+            bad.append(f"  {t}/{fn}: bad destination voice '{dest}'")
+        elif dbk not in BUCKETS:
+            bad.append(f"  {t}/{fn}: unknown bucket '{dbk}'")
+        elif not os.path.isfile(os.path.join(SOUNDS, t, cur, fn)):
+            bad.append(f"  {t}/{cur}/{fn}: no such wav")
+    if bad:
+        sys.exit("voice moves invalid — nothing moved:\n" + "\n".join(bad))
+    moved = 0
+    for t, fn, cur, dest, dbk in vmoves:
+        dstdir = os.path.join(SOUNDS, dest, dbk)
+        os.makedirs(dstdir, exist_ok=True)
+        dst = os.path.join(dstdir, fn)
+        base, ext = os.path.splitext(fn)
+        n = 1
+        while os.path.exists(dst):
+            dst = os.path.join(dstdir, f"{base}-{n}{ext}")
+            n += 1
+        os.rename(os.path.join(SOUNDS, t, cur, fn), dst)
+        moved += 1
+    # A voice move is one-shot: the file now lives at its destination and buckets.tsv records it there.
+    # Leaving the (old voice, slug) -> dest row behind would yank the clip back out the next time it is
+    # moved home again, so drop executed rows.
+    ov, dests = user_overrides(), user_dests()
+    for t, fn, *_ in vmoves:
+        k = (t, fn[:-4] if fn.lower().endswith(".wav") else fn)
+        ov.pop(k, None)
+        dests.pop(k, None)
+    write_user_overrides(ov, dests, OVERRIDES_HEADER)
+    return moved
 
 
 def main():
@@ -316,6 +392,14 @@ def main():
         rows = walk()        # re-read: overrides.tsv just changed
         apply = True         # importing your edits means you want them applied
 
+    vmoves = voice_moves(rows)
+    vdone = 0
+    if vmoves and apply:
+        vdone = apply_voice_moves(vmoves)
+        rows = walk()        # files now live under their new voice; manifest/buckets must reflect that
+        vmoves = []
+    vkeys = {(t, fn) for t, fn, *_ in vmoves}      # dry run only: report these as voice moves, not bucket moves
+
     with open(os.path.join(DATA, "manifest.tsv"), "w") as f:
         f.write("titan\tfile\tcurrent_bucket\tproposed_bucket\ttranscript\tsource\n")
         for t, fn, slug, cur, prop, tr, src in rows:
@@ -326,12 +410,18 @@ def main():
         for t, fn, slug, cur, prop, tr, src in rows:
             f.write(f"{t}\t{slug}\t{prop}\n")
 
-    moves = [(t, fn, cur, prop) for t, fn, slug, cur, prop, tr, src in rows if cur != prop]
+    moves = [(t, fn, cur, prop) for t, fn, slug, cur, prop, tr, src in rows
+             if cur != prop and (t, fn) not in vkeys]
     nuser = len(user_overrides())
     print(f"{len(rows)} wavs, {len(moves)} reclassified"
+          + (f", {len(vmoves)} to another voice" if vmoves else "")
           + (f" ({nuser} ui override rows)" if nuser else ""))
     for t, fn, cur, prop in moves:
         print(f"  {t}: {cur} -> {prop}  {fn}")
+    for t, fn, cur, dest, dbk in vmoves:
+        print(f"  {t}/{cur} -> {dest}/{dbk}  {fn}")
+    if vdone:
+        print(f"applied: moved {vdone} files to another voice")
 
     if apply:
         moved = 0
@@ -347,7 +437,7 @@ def main():
                 n += 1
             os.rename(src, dst)
             moved += 1
-        print(f"applied: moved {moved} files")
+        print(f"applied: moved {moved + vdone} files")     # total — the ui shows this last line as its status
         if imp:
             export_review(walk(), force=True)   # edits are applied now; safe to regenerate
     else:

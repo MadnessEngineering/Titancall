@@ -179,6 +179,11 @@ one place: `titancall alias`, `titancall group set/rm`, `titancall config unset`
 exact clip). Wav→bucket moves are the one file-touching path: the UI appends to the tracked
 `data/overrides.tsv` and re-runs `build_manifest.py --apply`. `overrides.tsv` is merged *over* the
 curated `OVERRIDES` dict, so the console never has to rewrite python source and a UI move always wins.
+A *voice* move (`v`) adds an optional 4th column (dest titan) to the same row. `voice_moves` →
+`apply_voice_moves` run FIRST in `--apply` (validate every row, then rename, then re-`walk()`), and the
+executed row is dropped: leaving it would bounce the clip back out the next time it is moved home. Anything
+that rewrites `overrides.tsv` must go through `write_user_overrides` (build_manifest) / `write_overrides`
+(ui) so the dest column survives. `review.csv` still only edits buckets, not voices.
 Hook→event mapping stays read-only (it lives in `~/.claude/settings.json`); the UI parses
 `install-hooks.sh`'s `EVENTS` map for the recommended set and settings.json for what's actually wired,
 then offers to retarget the *event* instead.

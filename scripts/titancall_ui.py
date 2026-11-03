@@ -7,6 +7,7 @@ sounds stays pure bash, so a machine without python3 still gets notifications.
 The four layers it manages (bash CLI stays authoritative for every write):
 
     wav   -> bucket    data/overrides.tsv  +  build_manifest.py --apply  (actually moves the wav)
+    wav   -> voice     same file, optional 4th column (dest voice); `v` key — relocates across titans
     group -> buckets   `titancall group set <name> <b1,b2,...>`          (config group.*)
     event -> target    `titancall alias <event> <bucket|group>`          (config alias.*)
     hook  -> event     READ-ONLY (install-hooks.sh + ~/.claude/settings.json)
@@ -124,16 +125,38 @@ def read_overrides():
     return ov
 
 
-def write_overrides(ov):
-    """Atomic temp+rename, sorted — this file is tracked in git, keep the diffs readable."""
+def read_dests():
+    """Optional 4th column of overrides.tsv -> {(titan, slug): dest_titan} (a pending move to another voice)."""
+    dests = {}
+    try:
+        with open(OVERRIDES_TSV) as f:
+            for line in f:
+                line = line.rstrip("\n")
+                if not line.strip() or line.lstrip().startswith("#"):
+                    continue
+                parts = line.split("\t")
+                if len(parts) >= 4 and parts[3].strip():
+                    dests[(parts[0], parts[1])] = parts[3].strip()
+    except OSError:
+        pass
+    return dests
+
+
+def write_overrides(ov, dests=None):
+    """Atomic temp+rename, sorted — this file is tracked in git, keep the diffs readable.
+    `dests` defaults to whatever the file already holds, so a plain bucket move never drops a pending voice move."""
+    if dests is None:
+        dests = read_dests()
     os.makedirs(DATA, exist_ok=True)
     tmp = OVERRIDES_TSV + ".tmp"
     with open(tmp, "w") as f:
-        f.write("# titan\tslug\tbucket — written by `titancall ui`; merged OVER build_manifest.py's\n"
-                "# curated OVERRIDES, so a UI move always wins. Hand-edit freely, then run\n"
-                "# `python3 scripts/build_manifest.py --apply`.\n")
+        f.write("# titan\tslug\tbucket\t[dest_titan] — written by `titancall ui` / `--import-review`; merged OVER the\n"
+                "# curated OVERRIDES dict in build_manifest.py, so these always win. dest_titan relocates the wav\n"
+                "# to another voice (the ui's `v` key); that row is dropped once applied.\n"
+                "# Hand-edit freely, then run `python3 scripts/build_manifest.py --apply`.\n")
         for (titan, slug), bucket in sorted(ov.items()):
-            f.write("%s\t%s\t%s\n" % (titan, slug, bucket))
+            dest = dests.get((titan, slug))
+            f.write("%s\t%s\t%s%s\n" % (titan, slug, bucket, ("\t" + dest) if dest else ""))
     os.replace(tmp, OVERRIDES_TSV)
 
 
@@ -307,7 +330,7 @@ class UI:
 
     def keyline(self):
         if self.screen == BROWSE:
-            base = " tab pane  enter/p play  space mark  m move  x clear  / filter  r reload  1-4 screens  q quit "
+            base = " tab pane  enter/p play  space mark  m move  v voice  x clear  / filter  r reload  1-4 screens  q quit "
             return base if not self.marks else " %d marked | m move them  x clear  space unmark " % len(self.marks)
         if self.screen == EVENTS:
             return " enter retarget  n new event  d delete  p test event  1-4 screens  q quit "
@@ -533,6 +556,7 @@ class UI:
         lines = [
             "browse   tab/left/right pane   up/down move   enter or p play",
             "         space mark wav   m move marked (or current) -> bucket   x clear marks",
+            "         v move marked (or current) -> another VOICE, then pick its bucket",
             "         / filter (esc clears)   r rescan library",
             "events   enter retarget event -> bucket|group   n new   d delete   p test through CLI",
             "groups   n new group   enter edit members   d delete   p preview a member",
@@ -588,6 +612,46 @@ class UI:
         self.reload()
         tail = out.splitlines()[-1] if out else ""
         self.msg = ("moved %d -> %s (%s)" % (len(items), dest, tail)) if rc == 0 \
+            else "build_manifest failed: %s" % tail
+
+    def do_move_voice(self):
+        """Marked (or current) wavs -> another VOICE, then a bucket there. Same override file as `m`; the
+        4th column (dest voice) is what build_manifest.py --apply acts on."""
+        items = sorted(self.marks) if self.marks else ([self.cur_file()] if self.cur_file() else [])
+        if not items:
+            self.msg = "nothing to move"
+            return
+        origins = {t for t, _, _ in items}
+        voices = [t for t in self.titans if len(origins) > 1 or t not in origins]
+        dest = self.overlay("move %d wav(s) to voice" % len(items), voices)
+        if not dest:
+            return
+        # offer the clips' own bucket first when they share one — most cross-voice moves keep the bucket
+        shared = {bk for _, bk, _ in items}
+        buckets = self.buckets_all
+        if len(shared) == 1:
+            buckets = sorted(buckets, key=lambda b: b not in shared)
+        bucket = self.overlay("bucket in %s" % dest, buckets)
+        if not bucket:
+            return
+        ov, dests = read_overrides(), read_dests()
+        n = 0
+        for titan, bk, fn in items:
+            if titan == dest:
+                continue
+            key = (titan, fn[:-4] if fn.lower().endswith(".wav") else fn)
+            ov[key] = bucket
+            dests[key] = dest
+            n += 1
+        if not n:
+            self.msg = "already in %s" % dest
+            return
+        write_overrides(ov, dests)
+        rc, out = run([sys.executable, BUILD_MANIFEST, "--apply"])
+        self.marks.clear()
+        self.reload()
+        tail = out.splitlines()[-1] if out else ""
+        self.msg = ("moved %d -> %s/%s (%s)" % (n, dest, bucket, tail)) if rc == 0 \
             else "build_manifest failed: %s" % tail
 
     def targets(self):
@@ -681,6 +745,8 @@ class UI:
             self.do_mark()
         elif k == ord("m"):
             self.do_move()
+        elif k == ord("v"):
+            self.do_move_voice()
         elif k == ord("x"):
             self.marks.clear()
             self.msg = "marks cleared"
