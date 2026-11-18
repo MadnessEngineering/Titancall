@@ -374,17 +374,19 @@ def apply_voice_moves(vmoves):
     return moved
 
 
-def main():
-    apply = "--apply" in sys.argv
-    review = "--review" in sys.argv
-    imp = "--import-review" in sys.argv
+def main(argv=None):
+    """`argv` lets `titancall ui` call this in-process — a fresh interpreter per move was most of its lag."""
+    argv = sys.argv[1:] if argv is None else argv
+    apply = "--apply" in argv
+    review = "--review" in argv
+    imp = "--import-review" in argv
     if not os.path.isdir(SOUNDS):
         sys.exit(f"no sounds dir at {SOUNDS}")
     os.makedirs(DATA, exist_ok=True)
     rows = walk()
 
     if review:
-        export_review(rows, force="--force" in sys.argv)
+        export_review(rows, force="--force" in argv)
         return
     if imp:
         if not import_review(rows):

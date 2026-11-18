@@ -177,9 +177,12 @@ one place: `titancall alias`, `titancall group set/rm`, `titancall config unset`
 `titancall buckets` / `whoami` for candidates, and previews clips via `titancall playfile <wav>`
 (honors device + volume, deliberately bypasses the mute gate and cooldown — the user asked for that
 exact clip). Wav→bucket moves are the one file-touching path: the UI appends to the tracked
-`data/overrides.tsv` and re-runs `build_manifest.py --apply`. `overrides.tsv` is merged *over* the
-curated `OVERRIDES` dict, so the console never has to rewrite python source and a UI move always wins.
-A *voice* move (`v`) adds an optional 4th column (dest titan) to the same row. `voice_moves` →
+`data/overrides.tsv` and runs `build_manifest.main(["--apply"])` *in-process* (`apply_manifest`), then
+`rescan()`s only the library — not `reload()`, whose `whoami`/`buckets` spawns a move can't change. On a
+loaded box each interpreter/bash spawn costs seconds; that is what made moves crawl. `overrides.tsv` is
+merged *over* the curated `OVERRIDES` dict, so the console never has to rewrite python source and a UI
+move always wins. A *voice* move (`v`) lists the clip's own voice first (picking it = plain rebucket, and
+it cancels any pending dest), and adds an optional 4th column (dest titan) to the same row. `voice_moves` →
 `apply_voice_moves` run FIRST in `--apply` (validate every row, then rename, then re-`walk()`), and the
 executed row is dropped: leaving it would bounce the clip back out the next time it is moved home. Anything
 that rewrites `overrides.tsv` must go through `write_user_overrides` (build_manifest) / `write_overrides`

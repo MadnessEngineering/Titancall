@@ -57,6 +57,27 @@ def tc(*args):
     return run([TC] + list(args))
 
 
+def apply_manifest():
+    """`build_manifest.py --apply`, in-process. Same code path as the CLI, minus a fresh interpreter per
+    move — on a loaded box that spawn was ~2s of the ~10s a move took. Returns (rc, output)."""
+    import contextlib
+    import io
+    sys.path.insert(0, os.path.dirname(BUILD_MANIFEST))
+    try:
+        import build_manifest
+    finally:
+        sys.path.pop(0)
+    buf = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+            build_manifest.main(["--apply"])
+        return 0, buf.getvalue().strip()
+    except SystemExit as e:
+        return (e.code if isinstance(e.code, int) else 1), (buf.getvalue() + str(e.code or "")).strip()
+    except Exception as e:      # a bad override row must not kill the console mid-sort
+        return 1, (buf.getvalue() + "%s: %s" % (type(e).__name__, e)).strip()
+
+
 def play(path):
     """Fire-and-forget preview through the CLI, so device switching + volume are honored."""
     try:
@@ -233,6 +254,15 @@ class UI:
         m = re.search(r"titan:\s+(\S+)\s+\(via (\w+)\)", out) if rc == 0 else None
         self.active = m.group(1) if m else (self.titans[0] if self.titans else "")
         self.who = "%s (via %s)" % (self.active, m.group(2)) if m else self.active or "?"
+
+    def rescan(self):
+        """After a wav move: only the library changed. reload() would also re-run `titancall whoami`
+        and `titancall buckets` — two bash spawns for data a move can't touch."""
+        cur = self.titan()
+        self.lib = scan_library()
+        self.titans = sorted(self.lib)
+        if cur in self.titans:
+            self.sel[0] = self.titans.index(cur)
 
     def aliases(self):
         return sorted((k[len("alias."):], v) for k, v in self.cfg.items() if k.startswith("alias."))
@@ -556,7 +586,7 @@ class UI:
         lines = [
             "browse   tab/left/right pane   up/down move   enter or p play",
             "         space mark wav   m move marked (or current) -> bucket   x clear marks",
-            "         v move marked (or current) -> another VOICE, then pick its bucket",
+            "         v move marked (or current) -> a VOICE (own voice listed first), then its bucket",
             "         / filter (esc clears)   r rescan library",
             "events   enter retarget event -> bucket|group   n new   d delete   p test through CLI",
             "groups   n new group   enter edit members   d delete   p preview a member",
@@ -607,25 +637,28 @@ class UI:
         for titan, bk, fn in items:
             ov[(titan, fn[:-4] if fn.lower().endswith(".wav") else fn)] = dest
         write_overrides(ov)
-        rc, out = run([sys.executable, BUILD_MANIFEST, "--apply"])
+        rc, out = apply_manifest()
         self.marks.clear()
-        self.reload()
+        self.rescan()
         tail = out.splitlines()[-1] if out else ""
         self.msg = ("moved %d -> %s (%s)" % (len(items), dest, tail)) if rc == 0 \
             else "build_manifest failed: %s" % tail
 
     def do_move_voice(self):
-        """Marked (or current) wavs -> another VOICE, then a bucket there. Same override file as `m`; the
-        4th column (dest voice) is what build_manifest.py --apply acts on."""
+        """Marked (or current) wavs -> a voice, then a bucket there. Same override file as `m`; the
+        4th column (dest voice) is what build_manifest.py --apply acts on. The clips' own voice is
+        offered first, so `v` alone covers a plain rebucket too — no need to back out and press `m`."""
         items = sorted(self.marks) if self.marks else ([self.cur_file()] if self.cur_file() else [])
         if not items:
             self.msg = "nothing to move"
             return
-        origins = {t for t, _, _ in items}
-        voices = [t for t in self.titans if len(origins) > 1 or t not in origins]
-        dest = self.overlay("move %d wav(s) to voice" % len(items), voices)
-        if not dest:
+        origins = sorted({t for t, _, _ in items})
+        label = {("%s  (same voice)" % t if t in origins else t): t
+                 for t in origins + [t for t in self.titans if t not in origins]}
+        picked = self.overlay("move %d wav(s) to voice" % len(items), list(label))
+        if not picked:
             return
+        dest = label[picked]
         # offer the clips' own bucket first when they share one — most cross-voice moves keep the bucket
         shared = {bk for _, bk, _ in items}
         buckets = self.buckets_all
@@ -635,23 +668,19 @@ class UI:
         if not bucket:
             return
         ov, dests = read_overrides(), read_dests()
-        n = 0
         for titan, bk, fn in items:
-            if titan == dest:
-                continue
             key = (titan, fn[:-4] if fn.lower().endswith(".wav") else fn)
             ov[key] = bucket
-            dests[key] = dest
-            n += 1
-        if not n:
-            self.msg = "already in %s" % dest
-            return
+            if titan == dest:
+                dests.pop(key, None)     # same voice: a plain rebucket, and it cancels any pending voice move
+            else:
+                dests[key] = dest
         write_overrides(ov, dests)
-        rc, out = run([sys.executable, BUILD_MANIFEST, "--apply"])
+        rc, out = apply_manifest()
         self.marks.clear()
-        self.reload()
+        self.rescan()
         tail = out.splitlines()[-1] if out else ""
-        self.msg = ("moved %d -> %s/%s (%s)" % (n, dest, bucket, tail)) if rc == 0 \
+        self.msg = ("moved %d -> %s/%s (%s)" % (len(items), dest, bucket, tail)) if rc == 0 \
             else "build_manifest failed: %s" % tail
 
     def targets(self):
@@ -843,6 +872,8 @@ class UI:
 
 def main(stdscr):
     curses.curs_set(0)
+    if hasattr(curses, "set_escdelay"):
+        curses.set_escdelay(25)     # default 1000ms: every esc-cancel in an overlay sat for a full second
     if curses.has_colors():
         curses.start_color()
         curses.use_default_colors()
