@@ -280,6 +280,7 @@ protoss	obliterate	attack
 protoss	power-overwhelming	attack
 protoss	we-burn	attack
 protoss	carrier-has-arrived	core
+protoss	power-overwhelming	core
 protoss	do-not-provoke-me-to-violence	damage
 protoss	not-enough-energy	damage
 protoss	you-have-not-enough-minerals	damage
@@ -425,11 +426,8 @@ terran	i-vote-we-frag-this-commander	attack
 terran	i-want-to-turn-up-the-heat	attack
 terran	ignition-commencing	attack
 terran	let-s-burn	attack
-terran	live-for-the-swarm	attack
 terran	need-a-light	attack
-terran	power-overwhelming	attack
 terran	prepare-em-yourself	attack
-terran	prepare-to-die	attack
 terran	rock-and-roll	attack
 terran	slammin	attack
 terran	somebody-call-for-an-exterminator	attack
@@ -739,6 +737,7 @@ tone	warning2	warn
 tone	warning3	warn
 zerg	for-the-overmind	attack
 zerg	i-ll-kill-you-myself	attack
+zerg	live-for-the-swarm-1	attack
 zerg	live-for-the-swarm	attack
 zerg	prepare-to-die	attack
 zerg	ready-to-chew	attack
@@ -747,6 +746,7 @@ zerg	spawn-more-overlords	damage
 zerg	we-require-more-minerals	damage
 zerg	we-require-more-vespene-gas	damage
 zerg	evolution-complete	down
+zerg	prepare-to-die	eject
 zerg	what-is-it-now	enter
 zerg	alright	follow
 zerg	gladly	follow

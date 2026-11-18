@@ -280,6 +280,7 @@ protoss	obliterate.wav	attack	attack	obliterate	filename
 protoss	power-overwhelming.wav	attack	attack	power overwhelming	filename
 protoss	we-burn.wav	attack	attack	we burn	filename
 protoss	carrier-has-arrived.wav	core	core	carrier has arrived	filename
+protoss	power-overwhelming.wav	core	core	power overwhelming	filename
 protoss	do-not-provoke-me-to-violence.wav	damage	damage	do not provoke me to violence	filename
 protoss	not-enough-energy.wav	damage	damage	not enough energy	filename
 protoss	you-have-not-enough-minerals.wav	damage	damage	you have not enough minerals	filename
@@ -425,11 +426,8 @@ terran	i-vote-we-frag-this-commander.wav	attack	attack	i vote we frag this comma
 terran	i-want-to-turn-up-the-heat.wav	attack	attack	i want to turn up the heat	filename
 terran	ignition-commencing.wav	attack	attack	ignition commencing	filename
 terran	let-s-burn.wav	attack	attack	let s burn	filename
-terran	live-for-the-swarm.wav	attack	attack	live for the swarm	filename
 terran	need-a-light.wav	attack	attack	need a light	filename
-terran	power-overwhelming.wav	attack	attack	power overwhelming	filename
 terran	prepare-em-yourself.wav	attack	attack	prepare em yourself	filename
-terran	prepare-to-die.wav	attack	attack	prepare to die	filename
 terran	rock-and-roll.wav	attack	attack	rock and roll	filename
 terran	slammin.wav	attack	attack	slammin	filename
 terran	somebody-call-for-an-exterminator.wav	attack	attack	somebody call for an exterminator	filename
@@ -739,6 +737,7 @@ tone	warning2.wav	warn	warn	warning2	filename
 tone	warning3.wav	warn	warn	warning3	filename
 zerg	for-the-overmind.wav	attack	attack	for the overmind	filename
 zerg	i-ll-kill-you-myself.wav	attack	attack	i ll kill you myself	filename
+zerg	live-for-the-swarm-1.wav	attack	attack	live for the swarm 1	filename
 zerg	live-for-the-swarm.wav	attack	attack	live for the swarm	filename
 zerg	prepare-to-die.wav	attack	attack	prepare to die	filename
 zerg	ready-to-chew.wav	attack	attack	ready to chew	filename
@@ -747,6 +746,7 @@ zerg	spawn-more-overlords.wav	damage	damage	spawn more overlords	filename
 zerg	we-require-more-minerals.wav	damage	damage	we require more minerals	filename
 zerg	we-require-more-vespene-gas.wav	damage	damage	we require more vespene gas	filename
 zerg	evolution-complete.wav	down	down	evolution complete	filename
+zerg	prepare-to-die.wav	eject	eject	prepare to die	filename
 zerg	what-is-it-now.wav	enter	enter	what is it now	filename
 zerg	alright.wav	follow	follow	alright	filename
 zerg	gladly.wav	follow	follow	gladly	filename

@@ -1,5 +1,7 @@
-# titan	slug	bucket — from `--import-review` / `titancall ui`; merged OVER the
-# curated OVERRIDES dict in build_manifest.py, so these always win.
+# titan	slug	bucket	[dest_titan] — written by `titancall ui` / `--import-review`; merged OVER the
+# curated OVERRIDES dict in build_manifest.py, so these always win. dest_titan relocates the wav
+# to another voice (the ui's `v` key); that row is dropped once applied.
+# Hand-edit freely, then run `python3 scripts/build_manifest.py --apply`.
 bt	are-you-sure-about-this-there-is-a-58-percent-chance-of-sucess	warn
 bt	dismembernent-may-also-occur	warn
 bt	full-throw	attack
